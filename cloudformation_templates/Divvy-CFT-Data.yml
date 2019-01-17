@@ -1,0 +1,283 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  ConditionUseCustomSecurityGroups:
+    Fn::Equals:
+    - Ref: ParameterOverrideSecurityGroups
+    - 'yes'
+  ConditionUseCustomSubnetGroups:
+    Fn::Equals:
+    - Ref: ParameterOverrideSubnetGroups
+    - 'yes'
+Description: DivvyCloud base deployment for enterprises. This template deploys RDS
+  and Elasticache instances for DivvyCloud
+Mappings:
+  Ports:
+    db:
+      port: '3306'
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: RDS Deployment Information
+      Parameters:
+      - ParameterDBInstanceType
+      - ParameterDBusername
+      - ParameterDBpassword
+      - ParameterMultiAZDatabase
+    - Label:
+        default: Redis Deployment Information
+      Parameters:
+      - ParameterCacheInstanceType
+    - Label:
+        default: Default Networking and Security Deployment Information
+      Parameters:
+      - ParameterNetworkStackName
+    - Label:
+        default: Optional Security Group Overrides
+      Parameters:
+      - ParameterOverrideSecurityGroups
+      - ParameterSecurityGroupDB
+      - ParameterSecurityGroupRedis
+    - Label:
+        default: Optional Subnet Overrides
+      Parameters:
+      - ParameterOverrideSubnetGroups
+      - ParameterSubnetGroupDB
+      - ParameterSubnetGroupRedis
+    ParameterLabels:
+      ParameterMultiAZDatabase:
+        default: Multi-Availabilty Zone
+      ParameterCacheInstanceType:
+        default: Redis Instance Type
+      ParameterDBInstanceType:
+        default: RDS Instance Type
+      ParameterDBpassword:
+        default: Database Password
+      ParameterDBusername:
+        default: Database Username
+      ParameterNetworkStackName:
+        default: Network Stack Name
+      ParameterOverrideSecurityGroups:
+        default: Overide provided Security Groups
+      ParameterSecurityGroupDB:
+        default: Database Security Group
+      ParameterSecurityGroupRedis:
+        default: Redis Security Group
+      ParameterOverrideSubnetGroups:
+        default: Overide provided Subnets
+      ParameterSubnetGroupDB:
+        default: Database Subnet
+      ParameterSubnetGroupRedis:
+        default: Redis Subnet
+Outputs:
+  DBInstanceDivvy:
+    Description: RDS for DivvyCloud
+    Export:
+      Name:
+        Fn::Join:
+        - ":"
+        - - Ref: AWS::StackName
+          - DBInstanceDivvy
+    Value:
+      Ref: DBInstanceDivvy
+  ParameterDBusername:
+    Description: Username for RDS for DivvyCloud
+    Export:
+      Name:
+        Fn::Join:
+        - ":"
+        - - Ref: AWS::StackName
+          - ParameterDBusername
+    Value:
+      Ref: ParameterDBusername
+  ParameterDBpassword:
+    Description: Password for RDS for DivvyCloud
+    Export:
+      Name:
+        Fn::Join:
+        - ":"
+        - - Ref: AWS::StackName
+          - ParameterDBpassword
+    Value:
+      Ref: ParameterDBpassword
+  ParameterDBendpoint:
+    Description: Endpoint for RDS for DivvyCloud
+    Export:
+      Name:
+        Fn::Join:
+        - ":"
+        - - Ref: AWS::StackName
+          - ParameterDBendpoint
+    Value:
+      Fn::GetAtt:
+      - DBInstanceDivvy
+      - Endpoint.Address
+  ParameterCacheendpoint:
+    Description: Endpoint for Redis for DivvyCloud
+    Export:
+      Name:
+        Fn::Join:
+        - ":"
+        - - Ref: AWS::StackName
+          - ParameterCacheendpoint
+    Value:
+      Fn::GetAtt:
+      - CacheClusterDivvy
+      - RedisEndpoint.Address
+Parameters:
+  ParameterCacheInstanceType:
+    AllowedValues:
+    - cache.t2.medium
+    - cache.m3.medium
+    - cache.m3.large
+    - cache.m4.large
+    ConstraintDescription: Must be a valid Redis instance type for your AWS region.
+    Default: cache.t2.medium
+    Description: Redis instance type (e.g., cache.t2.medium or cache.m4.large).
+    Type: String
+  ParameterDBInstanceType:
+    AllowedValues:
+    - db.t2.large
+    - db.m3.large
+    - db.m3.xlarge
+    - db.m3.2xlarge
+    - db.m4.large
+    - db.m4.xlarge
+    ConstraintDescription: Must be a valid RDS instance type for your AWS region.
+    Default: db.m4.large
+    Description: RDS instance type (i.e., db.m4.large or db.m4.xlarge).
+    Type: String
+  ParameterDBpassword:
+    AllowedPattern: ^[^"@\s\/]+$
+    Description: Enter your password for the database. Can include any printable ASCII
+      character except /, @, ", or ' '. Min and max lengths are 8 and 41 characters
+      respectively.
+    MaxLength: '41'
+    MinLength: '8'
+    NoEcho: 'true'
+    Type: String
+  ParameterDBusername:
+    Default: divvy
+    Description: Enter your username for the database.
+    Type: String
+  ParameterMultiAZDatabase:
+    AllowedValues:
+    - 'true'
+    - 'false'
+    ConstraintDescription: Must be true or false.
+    Default: 'false'
+    Description: Deploy RDS across multiple Availability Zones
+    Type: String
+  ParameterNetworkStackName:
+    Default: Network
+    Description: Name of stack used to deploy network resources
+    Type: String
+  ParameterOverrideSecurityGroups:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no.
+    Default: 'no'
+    Description: Override deployed security groups with provided security groups?
+    Type: String
+  ParameterSecurityGroupDB:
+    Default: Enter value if Override
+    Description: Gruop ID of security group for database
+    Type: String
+  ParameterSecurityGroupRedis:
+    Default: Enter value if Override
+    Description: Group ID of security group for redis
+    Type: String
+  ParameterOverrideSubnetGroups:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no.
+    Default: 'no'
+    Description: Override deployed subnet groups with provided subnet groups?
+    Type: String
+  ParameterSubnetGroupDB:
+    Default: Enter value if Override
+    Description: Name of subnet for database
+    Type: String
+  ParameterSubnetGroupRedis:
+    Default: Enter value if Override
+    Description: Name of subnet for redis
+    Type: String
+Resources:
+  CacheClusterDivvy:
+    DeletionPolicy: Retain
+    DependsOn: []
+    Properties:
+      AZMode: single-az
+      AutoMinorVersionUpgrade: 'true'
+      CacheNodeType:
+        Ref: ParameterCacheInstanceType
+      CacheSubnetGroupName:
+        Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetGroupRedis
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetGroupDivvyRedis"
+      Engine: redis
+      EngineVersion: 4.0.10
+      NumCacheNodes: '1'
+      PreferredMaintenanceWindow: fri:08:00-fri:09:00
+      Tags:
+      - Key: Name
+        Value: DivvyCloud-Redis
+      VpcSecurityGroupIds:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupRedis
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyRedis"
+    Type: AWS::ElastiCache::CacheCluster
+  DBInstanceDivvy:
+    DeletionPolicy: Retain
+    DependsOn:
+    - CacheClusterDivvy
+    Properties:
+      AllocatedStorage: '100'
+      AllowMajorVersionUpgrade: 'false'
+      BackupRetentionPeriod: '7'
+      CopyTagsToSnapshot: 'true'
+      DBInstanceClass:
+        Ref: ParameterDBInstanceType
+      DBName: divvy
+      DBSubnetGroupName:
+        Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetGroupDB
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:DBSubnetGroupDivvyRDS"
+      Engine: mysql
+      EngineVersion: 5.7.17
+      LicenseModel: general-public-license
+      MasterUserPassword:
+        Ref: ParameterDBpassword
+      MasterUsername:
+        Ref: ParameterDBusername
+      MultiAZ:
+        Ref: ParameterMultiAZDatabase
+      Port:
+        Fn::FindInMap:
+        - Ports
+        - db
+        - port
+      PreferredBackupWindow: 09:52-10:22
+      PreferredMaintenanceWindow: wed:04:37-wed:05:07
+      StorageEncrypted: 'true'
+      StorageType: gp2
+      Tags:
+      - Key: Name
+        Value: DivvyCloud-RDS
+      VPCSecurityGroups:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupDB
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyRDS"
+    Type: AWS::RDS::DBInstance
+

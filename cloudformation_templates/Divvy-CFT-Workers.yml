@@ -1,0 +1,950 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  ConditionSegmentASGs:
+    Fn::Equals:
+    - Ref: ParameterOverrideASGs
+    - 'yes'
+  ConditionUseCustomDatabaseLogin:
+    Fn::Equals:
+    - Ref: ParameterOverrideDatabaseLogin
+    - 'yes'
+  ConditionUseCustomEndpoints:
+    Fn::Equals:
+    - Ref: ParameterOverrideEndpoints
+    - 'yes'
+  ConditionUseCustomSecurityGroups:
+    Fn::Equals:
+    - Ref: ParameterOverrideSecurityGroups
+    - 'yes'
+  ConditionUseCustomSubnetGroups:
+    Fn::Equals:
+    - Ref: ParameterOverrideSubnetGroups
+    - 'yes'
+  ConditionUseProxies:
+    Fn::Equals:
+    - Ref: ParameterOverrideProxies
+    - 'yes'
+Description: DivvyCloud base deployment for enterprises. This template deploys an
+  Autoscaling group set for 2 EC2 for DivvyCloud
+Mappings:
+  Ports:
+    https:
+      port: '443'
+    instance:
+      port: '8001'
+    loadbalancer:
+      port: '80'
+  RegionMap:
+    ap-northeast-1:
+      '64': ami-0d5e82481c5fd4ad5
+    ap-northeast-2:
+      '64': ami-0507b772e2c9b8c15
+    ap-northeast-3:
+      '64': ami-00dca6aa6f16b4a64
+    ap-south-1:
+      '64': ami-0c8810f694cbe10ba
+    ap-southeast-1:
+      '64': ami-09f2be3a5a5867258
+    ap-southeast-2:
+      '64': ami-04978aa3dd8b62cc8
+    ca-central-1:
+      '64': ami-0a851426a8a56bf4b
+    cn-north-1:
+      '64': ami-013ead89472fc7464
+    cn-northwest-1:
+      '64': ami-085d69987e6675f08
+    eu-central-1:
+      '64': ami-00f3256a9deda4e1b
+    eu-north-1:
+      '64': ami-017ff17f
+    eu-west-1:
+      '64': ami-0233bae36f499afe8
+    eu-west-2:
+      '64': ami-03c015fc0026bf4fc
+    eu-west-3:
+      '64': ami-0b2985229e9f6bbba
+    sa-east-1:
+      '64': ami-08a4ba9038d7e8565
+    us-east-1:
+      '64': ami-03a935aafa6b52b97
+    us-east-2:
+      '64': ami-00c5e3f4a8dd369e8
+    us-gov-east-1:
+      '64': ami-0ee90f7f
+    us-gov-west-1:
+      '64': ami-0ff7956e
+    us-west-1:
+      '64': ami-0689ca7fe00282a37
+    us-west-2:
+      '64': ami-0dbd6cabe4749f197
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: EC2 Deployment Information
+      Parameters:
+      - ParameterEmail
+      - ParameterInstanceType
+      - ParameterKey
+    - Label:
+        default: Optional Scaling Overrides
+      Parameters:
+      - ParameterOverrideASGs
+      - ParameterOverrideDesiredCapacity
+      - ParameterHarvesters
+    - Label:
+        default: Default Networking and Security Deployment Information
+      Parameters:
+      - ParameterNetworkStackName
+    - Label:
+        default: Optional Proxies
+      Parameters:
+      - ParameterOverrideProxies
+      - ParameterHttp
+      - ParameterHttps
+    - Label:
+        default: Optional Security Group Overrides
+      Parameters:
+      - ParameterOverrideSecurityGroups
+      - ParameterSecurityGroupDivvyWorkers
+      - ParameterSecurityGroupDivvyELB
+    - Label:
+        default: Optional Subnet Overrides
+      Parameters:
+      - ParameterOverrideSubnetGroups
+      - ParameterSubnetDivvy1of2
+      - ParameterSubnetDivvy2of2
+    - Label:
+        default: Default Data Deployment Information
+      Parameters:
+      - ParameterDataStackName
+    - Label:
+        default: Optional Database Login Overrides
+      Parameters:
+      - ParameterOverrideDatabaseLogin
+      - ParameterOverrideDBusername
+      - ParameterOverrideDBpassword
+    - Label:
+        default: Optional Database and Redis Endpoint Overrides
+      Parameters:
+      - ParameterOverrideEndpoints
+      - ParameterOverrideDBendpoint
+      - ParameterOverrideCacheendpoint
+    ParameterLabels:
+      ParameterDataStackName:
+        default: Data Stack Name
+      ParameterEmail:
+        default: Email Address
+      ParameterHarvesters:
+        default: Harvesters per Node
+      ParameterHttp:
+        default: HTTP Proxy Setting
+      ParameterHttps:
+        default: HTTPS Proxy Setting
+      ParameterInstanceType:
+        default: DivvyCloud Instance Type
+      ParameterKey:
+        default: SSH Key Pair
+      ParameterNetworkStackName:
+        default: Network Stack Name
+      ParameterOverrideASGs:
+        default: Override ASG config
+      ParameterOverrideCacheendpoint:
+        default: Redis Endpoint
+      ParameterOverrideDBendpoint:
+        default: RDS Endpoint
+      ParameterOverrideDBpassword:
+        default: RDS Password
+      ParameterOverrideDBusername:
+        default: RDS Username
+      ParameterOverrideDatabaseLogin:
+        default: Overide provided RDS Login credentials
+      ParameterOverrideDesiredCapacity:
+        default: Workers ASG desired capacity
+      ParameterOverrideEndpoints:
+        default: Overide provided RDS and Redis Endpoints
+      ParameterOverrideProxies:
+        default: Add Proxy Settings
+      ParameterOverrideSecurityGroups:
+        default: Overide provided Security Groups
+      ParameterOverrideSubnetGroups:
+        default: Overide provided Subnets
+      ParameterSecurityGroupDivvyELB:
+        default: Load Balancer Security Group
+      ParameterSecurityGroupDivvyWorkers:
+        default: Workers Security Group
+      ParameterSubnetDivvy1of2:
+        default: Worker Subnet 1
+      ParameterSubnetDivvy2of2:
+        default: Worker Subnet 2
+Outputs: {}
+Parameters:
+  ParameterDataStackName:
+    Default: Data
+    Description: Name of stack used to deploy data resources
+    Type: String
+  ParameterEmail:
+    ConstraintDescription: Must be valid email address.
+    Description: Email address to receive EC2 launch notifications
+    Type: String
+  ParameterHarvesters:
+    AllowedValues:
+    - '4'
+    - '5'
+    - '6'
+    - '7'
+    - '8'
+    ConstraintDescription: Valid range 4 to 8.
+    Default: '4'
+    Description: Used for separate Workers ASG
+    Type: String
+  ParameterHttp:
+    Default: Enter IP address with port if adding proxy
+    Description: HTTP address of proxy server
+    Type: String
+  ParameterHttps:
+    Default: Enter IP address with port if adding proxy
+    Description: HTTPS address of proxy server
+    Type: String
+  ParameterInstanceType:
+    AllowedValues:
+    - m4.large
+    - m4.xlarge
+    - m5.large
+    - m5.xlarge
+    ConstraintDescription: Must be a valid EC2 HVM instance type for your AWS AZs.
+    Default: m5.large
+    Description: EC2 HVM instance type (e.g., m4.large, m5.xlarge, etc.).
+    Type: String
+  ParameterKey:
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair in this Region.
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+  ParameterNetworkStackName:
+    Default: Network
+    Description: Name of stack used to deploy network resources
+    Type: String
+  ParameterOverrideASGs:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Override to deploy Web Server and Workers using separate ASGs?
+    Type: String
+  ParameterOverrideCacheendpoint:
+    Default: Enter value if Override
+    Description: Redis endpoint
+    Type: String
+  ParameterOverrideDBendpoint:
+    Default: Enter value if Override
+    Description: RDS endpoint
+    Type: String
+  ParameterOverrideDBpassword:
+    Default: Enter value if Override
+    Description: RDS password
+    Type: String
+  ParameterOverrideDBusername:
+    Default: Enter value if Override
+    Description: RDS username
+    Type: String
+  ParameterOverrideDatabaseLogin:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Override RDS login credentials?
+    Type: String
+  ParameterOverrideDesiredCapacity:
+    AllowedValues:
+    - '2'
+    - '3'
+    - '4'
+    - '5'
+    - '6'
+    - '7'
+    - '8'
+    ConstraintDescription: Must be between 1 and 8
+    Default: '2'
+    Description: Used for separate Workers ASG
+    Type: String
+  ParameterOverrideEndpoints:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Override deployed RDS and Redis endpoints?
+    Type: String
+  ParameterOverrideProxies:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Add Proxy settings?
+    Type: String
+  ParameterOverrideSecurityGroups:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Override deployed security groups with provided security groups?
+    Type: String
+  ParameterOverrideSubnetGroups:
+    AllowedValues:
+    - 'yes'
+    - 'no'
+    ConstraintDescription: Must be yes or no
+    Default: 'no'
+    Description: Override deployed subnet groups with provided subnet groups?
+    Type: String
+  ParameterSecurityGroupDivvyELB:
+    Default: Enter value if Override
+    Description: Group ID of security group for load balancer
+    Type: String
+  ParameterSecurityGroupDivvyWorkers:
+    Default: Enter value if Override
+    Description: Group ID of security group for workers
+    Type: String
+  ParameterSubnetDivvy1of2:
+    Default: Enter value if Override
+    Description: Subnet ID of subnet 1 for workers
+    Type: String
+  ParameterSubnetDivvy2of2:
+    Default: Enter value if Override
+    Description: Subnet ID of subnet 2 for workers
+    Type: String
+Resources:
+  AutoScalingGroupDivvy:
+    DependsOn:
+    - LaunchConfigurationDivvy
+    - LoadBalancerDivvy
+    - TopicDivvySNS
+    Properties:
+      AutoScalingGroupName: DivvyASG
+      DesiredCapacity: '2'
+      LaunchConfigurationName:
+        Ref: LaunchConfigurationDivvy
+      LoadBalancerNames:
+      - Ref: LoadBalancerDivvy
+      MaxSize: '2'
+      MinSize: '2'
+      NotificationConfigurations:
+      - NotificationTypes:
+        - autoscaling:EC2_INSTANCE_LAUNCH
+        - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+        - autoscaling:EC2_INSTANCE_TERMINATE
+        - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        TopicARN:
+          Ref: TopicDivvySNS
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: 'true'
+        Value: DivvyCloudNode
+      VPCZoneIdentifier:
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy1of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy1of2"
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy2of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy2of2"
+    Type: AWS::AutoScaling::AutoScalingGroup
+  AutoScalingGroupScheduler:
+    Condition: ConditionSegmentASGs
+    DependsOn:
+    - LaunchConfigurationScheduler
+    - TopicDivvySNS
+    Properties:
+      AutoScalingGroupName: SchedulerASG
+      DesiredCapacity: '1'
+      LaunchConfigurationName:
+        Ref: LaunchConfigurationScheduler
+      MaxSize: '1'
+      MinSize: '1'
+      NotificationConfigurations:
+      - NotificationTypes:
+        - autoscaling:EC2_INSTANCE_LAUNCH
+        - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+        - autoscaling:EC2_INSTANCE_TERMINATE
+        - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        TopicARN:
+          Ref: TopicDivvySNS
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: 'true'
+        Value: DivvyCloudScheduler
+      VPCZoneIdentifier:
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy1of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy1of2"
+    Type: AWS::AutoScaling::AutoScalingGroup
+  AutoScalingGroupWorkers:
+    Condition: ConditionSegmentASGs
+    DependsOn:
+    - LaunchConfigurationWorkers
+    - TopicDivvySNS
+    Properties:
+      AutoScalingGroupName: WorkersASG
+      DesiredCapacity:
+        Ref: ParameterOverrideDesiredCapacity
+      LaunchConfigurationName:
+        Ref: LaunchConfigurationWorkers
+      MaxSize: '8'
+      MinSize: '2'
+      NotificationConfigurations:
+      - NotificationTypes:
+        - autoscaling:EC2_INSTANCE_LAUNCH
+        - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+        - autoscaling:EC2_INSTANCE_TERMINATE
+        - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+        TopicARN:
+          Ref: TopicDivvySNS
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: 'true'
+        Value: DivvyCloudWorkers
+      VPCZoneIdentifier:
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy1of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy1of2"
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy2of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy2of2"
+    Type: AWS::AutoScaling::AutoScalingGroup
+  LaunchConfigurationDivvy:
+    Properties:
+      AssociatePublicIpAddress: 'true'
+      BlockDeviceMappings:
+      - DeviceName: "/dev/sda1"
+        Ebs:
+          VolumeSize: '50'
+          VolumeType: gp2
+      EbsOptimized: 'true'
+      ImageId:
+        Fn::FindInMap:
+        - RegionMap
+        - Ref: AWS::Region
+        - '64'
+      InstanceMonitoring: 'true'
+      InstanceType:
+        Ref: ParameterInstanceType
+      KeyName:
+        Ref: ParameterKey
+      SecurityGroups:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupDivvyWorkers
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyWorkers"
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash -xe"
+            - apt-get update
+            - DEBIAN_FRONTEND=noninteractive apt-get upgrade -yq
+            - apt-get install -y mysql-client
+            - curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | DIVVY_ENV=prod
+              bash
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_HOST=mysql|DIVVY_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_USER=divvy|DIVVY_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_PASSWORD=divvy|DIVVY_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_HOST=mysql|DIVVY_SECURE_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_USER=divvy|DIVVY_SECURE_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_PASSWORD=divvy|DIVVY_SECURE_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_REDIS_HOST=redis|DIVVY_REDIS_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideCacheendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterCacheendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#http_proxy=http://proxy.acmecorp.com|http_proxy=
+                  - Ref: ParameterHttp
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#https_proxy=http://proxy.acmecorp.com|https_proxy=
+                  - Ref: ParameterHttps
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - sed -i 's|#no_proxy=mysql,redis,169.254.169.254|no_proxy=mysql,redis,169.254.169.254|g'
+                /divvycloud/prod.env
+              - ''
+            - Fn::Join:
+              - ''
+              - - 'mysql -h '
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - " -u "
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - " -p"
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - ' -e "CREATE DATABASE IF NOT EXISTS divvykeys;"'
+            - Fn::If:
+              - ConditionSegmentASGs
+              - sed -i '19,$d' /divvycloud/docker-compose.yml
+              - ''
+            - "/usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up
+              -d"
+            - cat<<EOF> /etc/cron.weekly/remove-docker-images
+            - "#!/bin/sh"
+            - "# Clean up docker-images"
+            - docker image prune -f
+            - EOF
+            - chmod 755 /etc/cron.weekly/remove-docker-images
+    Type: AWS::AutoScaling::LaunchConfiguration
+  LaunchConfigurationScheduler:
+    Condition: ConditionSegmentASGs
+    Properties:
+      AssociatePublicIpAddress: 'true'
+      BlockDeviceMappings:
+      - DeviceName: "/dev/sda1"
+        Ebs:
+          VolumeSize: '50'
+          VolumeType: gp2
+      EbsOptimized: 'true'
+      ImageId:
+        Fn::FindInMap:
+        - RegionMap
+        - Ref: AWS::Region
+        - '64'
+      InstanceMonitoring: 'true'
+      InstanceType:
+        Ref: ParameterInstanceType
+      KeyName:
+        Ref: ParameterKey
+      SecurityGroups:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupDivvyWorkers
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyWorkers"
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash -xe"
+            - apt-get update
+            - DEBIAN_FRONTEND=noninteractive apt-get upgrade -yq
+            - apt-get install -y mysql-client
+            - curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | DIVVY_ENV=prod
+              bash
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_HOST=mysql|DIVVY_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_USER=divvy|DIVVY_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_PASSWORD=divvy|DIVVY_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_HOST=mysql|DIVVY_SECURE_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_USER=divvy|DIVVY_SECURE_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_PASSWORD=divvy|DIVVY_SECURE_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_REDIS_HOST=redis|DIVVY_REDIS_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideCacheendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterCacheendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#http_proxy=http://proxy.acmecorp.com|http_proxy=
+                  - Ref: ParameterHttp
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#https_proxy=http://proxy.acmecorp.com|https_proxy=
+                  - Ref: ParameterHttps
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - sed -i 's|#no_proxy=mysql,redis,169.254.169.254|no_proxy=mysql,redis,169.254.169.254|g'
+                /divvycloud/prod.env
+              - ''
+            - Fn::Join:
+              - ''
+              - - 'mysql -h '
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - " -u "
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - " -p"
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - ' -e "CREATE DATABASE IF NOT EXISTS divvykeys;"'
+            - Fn::Join:
+              - ''
+              - - 'sed -i ''s|scale: 4|scale: '
+                - Ref: ParameterHarvesters
+                - "|g' /divvycloud/docker-compose.yml"
+            - sed -i '34,$d' /divvycloud/docker-compose.yml
+            - sed -i '3,18d' /divvycloud/docker-compose.yml
+            - "/usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up
+              -d"
+            - cat<<EOF> /etc/cron.weekly/remove-docker-images
+            - "#!/bin/sh"
+            - "# Clean up docker-images"
+            - docker image prune -f
+            - EOF
+            - chmod 755 /etc/cron.weekly/remove-docker-images
+    Type: AWS::AutoScaling::LaunchConfiguration
+  LaunchConfigurationWorkers:
+    Condition: ConditionSegmentASGs
+    Properties:
+      AssociatePublicIpAddress: 'true'
+      BlockDeviceMappings:
+      - DeviceName: "/dev/sda1"
+        Ebs:
+          VolumeSize: '50'
+          VolumeType: gp2
+      EbsOptimized: 'true'
+      ImageId:
+        Fn::FindInMap:
+        - RegionMap
+        - Ref: AWS::Region
+        - '64'
+      InstanceMonitoring: 'true'
+      InstanceType:
+        Ref: ParameterInstanceType
+      KeyName:
+        Ref: ParameterKey
+      SecurityGroups:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupDivvyWorkers
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyWorkers"
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash -xe"
+            - apt-get update
+            - DEBIAN_FRONTEND=noninteractive apt-get upgrade -yq
+            - apt-get install -y mysql-client
+            - curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | DIVVY_ENV=prod
+              bash
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_HOST=mysql|DIVVY_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_USER=divvy|DIVVY_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_MYSQL_PASSWORD=divvy|DIVVY_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_HOST=mysql|DIVVY_SECURE_MYSQL_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_USER=divvy|DIVVY_SECURE_MYSQL_USER=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_SECURE_MYSQL_PASSWORD=divvy|DIVVY_SECURE_MYSQL_PASSWORD=
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - "|g' /divvycloud/prod.env"
+            - Fn::Join:
+              - ''
+              - - sed -i 's|DIVVY_REDIS_HOST=redis|DIVVY_REDIS_HOST=
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideCacheendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterCacheendpoint"
+                - "|g' /divvycloud/prod.env"
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#http_proxy=http://proxy.acmecorp.com|http_proxy=
+                  - Ref: ParameterHttp
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - Fn::Join:
+                - ''
+                - - sed -i 's|#https_proxy=http://proxy.acmecorp.com|https_proxy=
+                  - Ref: ParameterHttps
+                  - "|g' /divvycloud/prod.env"
+              - ''
+            - Fn::If:
+              - ConditionUseProxies
+              - sed -i 's|#no_proxy=mysql,redis,169.254.169.254|no_proxy=mysql,redis,169.254.169.254|g'
+                /divvycloud/prod.env
+              - ''
+            - Fn::Join:
+              - ''
+              - - 'mysql -h '
+                - Fn::If:
+                  - ConditionUseCustomEndpoints
+                  - Ref: ParameterOverrideDBendpoint
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBendpoint"
+                - " -u "
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBusername
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBusername"
+                - " -p"
+                - Fn::If:
+                  - ConditionUseCustomDatabaseLogin
+                  - Ref: ParameterOverrideDBpassword
+                  - Fn::ImportValue:
+                      Fn::Sub: "${ParameterDataStackName}:ParameterDBpassword"
+                - ' -e "CREATE DATABASE IF NOT EXISTS divvykeys;"'
+            - Fn::Join:
+              - ''
+              - - 'sed -i ''s|scale: 4|scale: '
+                - Ref: ParameterHarvesters
+                - "|g' /divvycloud/docker-compose.yml"
+            - sed -i '3,32d' /divvycloud/docker-compose.yml
+            - "/usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up
+              -d"
+            - cat<<EOF> /etc/cron.weekly/remove-docker-images
+            - "#!/bin/sh"
+            - "# Clean up docker-images"
+            - docker image prune -f
+            - EOF
+            - chmod 755 /etc/cron.weekly/remove-docker-images
+    Type: AWS::AutoScaling::LaunchConfiguration
+  LoadBalancerDivvy:
+    Properties:
+      ConnectionDrainingPolicy:
+        Enabled: 'true'
+        Timeout: '300'
+      ConnectionSettings:
+        IdleTimeout: '600'
+      CrossZone: 'true'
+      HealthCheck:
+        HealthyThreshold: '3'
+        Interval: '20'
+        Target: HTTP:8001/Status
+        Timeout: '10'
+        UnhealthyThreshold: '3'
+      Listeners:
+      - InstancePort:
+          Fn::FindInMap:
+          - Ports
+          - instance
+          - port
+        InstanceProtocol: HTTP
+        LoadBalancerPort:
+          Fn::FindInMap:
+          - Ports
+          - loadbalancer
+          - port
+        Protocol: HTTP
+      Scheme: internet-facing
+      SecurityGroups:
+      - Fn::If:
+        - ConditionUseCustomSecurityGroups
+        - Ref: ParameterSecurityGroupDivvyELB
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SecurityGroupDivvyELB"
+      Subnets:
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy1of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy1of2"
+      - Fn::If:
+        - ConditionUseCustomSubnetGroups
+        - Ref: ParameterSubnetDivvy2of2
+        - Fn::ImportValue:
+            Fn::Sub: "${ParameterNetworkStackName}:SubnetDivvy2of2"
+      Tags:
+      - Key: Name
+        Value: DivvyCloud-ELB
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+  TopicDivvySNS:
+    Properties:
+      Subscription:
+      - Endpoint:
+          Ref: ParameterEmail
+        Protocol: email
+    Type: AWS::SNS::Topic
+

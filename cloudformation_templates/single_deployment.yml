@@ -103,6 +103,7 @@ Resources:
             - ''
             - - "#!/bin/bash -v\n"
               - "curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | sudo bash\n"
+              - "sudo echo \"@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d\" >> /etc/crontab\n"
   
 Outputs:
   PublicIp:

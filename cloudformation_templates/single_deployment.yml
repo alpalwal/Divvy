@@ -29,6 +29,10 @@ Parameters:
     Description: VPC Id for the instance to be deployed in
     Type: AWS::EC2::VPC::Id
     Default: ''
+  KeyPair:
+    Description: Key pair for the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ''
 
 Mappings:
   RegionMap:
@@ -82,6 +86,7 @@ Resources:
   EC2Instance:
       Type: AWS::EC2::Instance
       Properties:
+        KeyName: !Ref KeyPair
         ImageId: !FindInMap 
           - RegionMap
           - !Ref 'AWS::Region'

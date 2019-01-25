@@ -1,5 +1,3 @@
-# Add in parameter for variable for external acct ID
-# Add in parameter / condition for different types of policy
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 
@@ -13,12 +11,10 @@ Parameters:
     Description: Type of permissions to give
   Externalid:
     Type: String
-    Default: ''
     Description: Enter Divvy External ID
   SourceAccountId:
     Type: String
-    Default: ''
-    AllowedValues: \d{12}
+    AllowedPattern: \d{12}
     Description: Enter source account ID that will be assuming the role. A 12 digit number is expected (ex. 123456789012)
 
 Conditions:

@@ -1,3 +1,7 @@
+#CFT for creating an instance role to be used with your DivvyCloud instance. This is for the local account (not an external account that is being assumed into)
+#https://docs.divvycloud.com/docs/instance-assume-role-aws
+#Alex C
+#1-25-19
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 

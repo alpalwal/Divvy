@@ -41,13 +41,13 @@ Resources:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
-      PolicyName: DivvyStandardUser
+      PolicyName: DivvyCloud-StandardUser-Policy
       Roles:
       - Ref: Role
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Sid: DivvyStandardUser
+        - Sid: DivvyCloud-StandardUser-Policy
           Action:
           - acm:DescribeCertificate
           - acm:ListCertificates
@@ -247,7 +247,7 @@ Resources:
     Type: AWS::IAM::Policy
     Condition: AddPowerUser
     Properties:
-      PolicyName: DivvyPowerUser
+      PolicyName: DivvyCloud-PowerUser-Policy
       Roles:
       - Ref: Role
       PolicyDocument:

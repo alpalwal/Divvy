@@ -1,0 +1,333 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters: 
+  TypeOfUser: 
+    Type: String
+    Default: Standard User
+    AllowedValues: 
+      - Standard User
+      - Power User
+    Description: Type of permissions to give
+
+Conditions:
+  AddStandardUser: !Equals [ !Ref TypeOfUser, "Standard User" ]
+  AddPowerUser: !Equals [ !Ref TypeOfUser, "Power User" ]
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+  STSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: DivvyCloud-STS-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Resource: arn:aws:iam::*:role/*
+        - Action: sts:GetCallerIdentity
+          Effect: Allow
+          Resource: "*"
+
+  ReadOnlyPolicy:
+    Type: AWS::IAM::Policy
+    Condition: AddStandardUser
+    Properties:
+      PolicyName: DivvyCloud-StandardUser-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: DivvyCloudStandardUserPolicy
+          Action:
+          - acm:DescribeCertificate
+          - acm:ListCertificates
+          - acm:ListTagsForCertificate
+          - autoscaling:DescribeAutoScalingGroups
+          - autoscaling:DescribeLaunchConfigurations
+          - cloudformation:DescribeStackResource
+          - cloudformation:DescribeStackResources
+          - cloudformation:DescribeStacks
+          - cloudformation:GetTemplate
+          - cloudformation:ListStackResources
+          - cloudformation:ListStacks
+          - cloudfront:ListDistributions
+          - cloudfront:ListStreamingDistributions
+          - cloudfront:ListTagsForResource
+          - cloudsearch:DescribeAvailabilityOptions
+          - cloudsearch:DescribeDomains
+          - cloudsearch:DescribeServiceAccessPolicies
+          - cloudsearch:ListDomainNames
+          - cloudtrail:DescribeTrails
+          - cloudtrail:GetTrailStatus
+          - cloudwatch:DescribeAlarms
+          - cloudwatch:GetMetricStatistics
+          - cloudwatch:ListMetrics
+          - config:DescribeConfigurationRecorders
+          - config:DescribeConfigurationRecorderStatus
+          - config:DescribeDeliveryChannels
+          - config:DescribeDeliveryChannelStatus
+          - dax:DescribeClusters
+          - dax:DescribeTable
+          - dax:ListTables
+          - dax:ListTags
+          - dynamodb:DescribeContinuousBackups
+          - dynamodb:DescribeGlobalTable
+          - dynamodb:DescribeTable
+          - dynamodb:ListBackups
+          - dynamodb:ListGlobalTables
+          - dynamodb:ListTables
+          - dynamodb:ListTagsOfResource
+          - ec2:DescribeAccountAttributes
+          - ec2:DescribeAddresses
+          - ec2:DescribeAvailabilityZones
+          - ec2:DescribeFlowLogs
+          - ec2:DescribeHosts
+          - ec2:DescribeImageAttribute
+          - ec2:DescribeImages
+          - ec2:DescribeImportImageTasks
+          - ec2:DescribeInstanceAttribute
+          - ec2:DescribeInstances
+          - ec2:DescribeInstanceStatus
+          - ec2:DescribeInternetGateways
+          - ec2:DescribeKeyPairs
+          - ec2:DescribeNatGateways
+          - ec2:DescribeNetworkAcls
+          - ec2:DescribeNetworkInterfaceAttribute
+          - ec2:DescribeNetworkInterfaces
+          - ec2:DescribePlacementGroups
+          - ec2:DescribeRegions
+          - ec2:DescribeReservedInstances
+          - ec2:DescribeRouteTables
+          - ec2:DescribeSecurityGroups
+          - ec2:DescribeSnapshots
+          - ec2:DescribeSubnets
+          - ec2:DescribeTags
+          - ec2:DescribeVolumes
+          - ec2:DescribeVolumeStatus
+          - ec2:DescribeVpcAttribute
+          - ec2:DescribeVpcPeeringConnections
+          - ec2:DescribeVpcs
+          - ec2:GetConsoleOutput
+          - ec2:GetPasswordData
+          - eks:DescribeCluster
+          - eks:ListClusters
+          - elasticache:DescribeCacheClusters
+          - elasticache:DescribeSnapshots
+          - elasticache:ListTagsForResource
+          - elasticfilesystem:DescribeFileSystems
+          - elasticfilesystem:DescribeMountTargets
+          - elasticfilesystem:DescribeMountTargetSecurityGroups
+          - elasticfilesystem:DescribeTags
+          - elasticloadbalancing:DescribeInstanceHealth
+          - elasticloadbalancing:DescribeListeners
+          - elasticloadbalancing:DescribeLoadBalancerAttributes
+          - elasticloadbalancing:DescribeLoadBalancerPolicies
+          - elasticloadbalancing:DescribeLoadBalancerPolicyTypes
+          - elasticloadbalancing:DescribeLoadBalancers
+          - elasticloadbalancing:DescribeRules
+          - elasticloadbalancing:DescribeTags
+          - elasticloadbalancing:DescribeTargetGroups
+          - elasticloadbalancing:DescribeTargetHealth
+          - elasticmapreduce:DescribeCluster
+          - elasticmapreduce:ListClusters
+          - elasticmapreduce:ListInstances
+          - es:DescribeElasticsearchDomains
+          - es:ListDomainNames
+          - es:ListTags
+          - events:DescribeEventBus
+          - events:ListRules
+          - firehose:DescribeDeliveryStream
+          - firehose:ListDeliveryStreams
+          - firehose:ListTagsForDeliveryStream
+          - guardduty:GetDetector
+          - guardduty:GetMasterAccount
+          - guardduty:ListDetectors
+          - guardduty:ListMembers
+          - iam:GenerateCredentialReport
+          - iam:GetAccessKeyLastUsed
+          - iam:GetAccountAuthorizationDetails
+          - iam:GetAccountPasswordPolicy
+          - iam:GetAccountSummary
+          - iam:GetCredentialReport
+          - iam:GetLoginProfile
+          - iam:GetRole
+          - iam:GetSAMLProvider
+          - iam:GetUser
+          - iam:ListAccessKeys
+          - iam:ListAttachedGroupPolicies
+          - iam:ListAttachedRolePolicies
+          - iam:ListAttachedUserPolicies
+          - iam:ListGroupPolicies
+          - iam:ListGroups
+          - iam:ListGroupsForUser
+          - iam:ListMFADevices
+          - iam:ListPolicies
+          - iam:ListPolicyVersions
+          - iam:ListRolePolicies
+          - iam:ListRoles
+          - iam:ListSAMLProviders
+          - iam:ListServerCertificates
+          - iam:ListUserPolicies
+          - iam:ListUsers
+          - kinesis:DescribeStream
+          - kinesis:ListShards
+          - kinesis:ListStreams
+          - kinesis:ListTagsForStream
+          - kms:DescribeKey
+          - kms:GetKeyPolicy
+          - kms:GetKeyRotationStatus
+          - kms:ListAliases
+          - kms:ListKeys
+          - lambda:GetAccountSettings
+          - lambda:ListFunctions
+          - lambda:ListTags
+          - organizations:ListAccounts
+          - organizations:DescribeOrganization
+          - rds:DescribeDBClusters
+          - rds:DescribeDBClusterSnapshots
+          - rds:DescribeDBEngineVersions
+          - rds:DescribeDBInstances
+          - rds:DescribeDBSnapshots
+          - rds:DescribeReservedDBInstances
+          - rds:ListTagsForResource
+          - redshift:DescribeClusters
+          - redshift:DescribeClusterSnapshots
+          - redshift:DescribeTags
+          - route53:GetHostedZone
+          - route53:ListGeoLocations
+          - route53:ListHealthChecks
+          - route53:ListHostedZones
+          - route53:ListHostedZonesByName
+          - route53:ListResourceRecordSets
+          - route53:ListTagsForResource
+          - route53:ListTagsForResources
+          - route53:ListVPCAssociationAuthorizations
+          - s3:GetBucketACL
+          - s3:GetBucketCORS
+          - s3:GetBucketLocation
+          - s3:GetBucketLogging
+          - s3:GetBucketPolicy
+          - s3:GetBucketTagging
+          - s3:GetBucketVersioning
+          - s3:GetBucketWebsite
+          - s3:ListAllMyBuckets
+          - ses:GetIdentityVerificationAttributes
+          - ses:GetIdentityMailFromDomainAttributes
+          - ses:GetIdentityDkimAttributes
+          - ses:GetIdentityNotificationAttributes
+          - ses:ListIdentities
+          - sns:GetSubscriptionAttributes
+          - sns:GetTopicAttributes
+          - sns:ListSubscriptions
+          - sns:ListTopics
+          - sqs:GetQueueAttributes
+          - sqs:ListQueues
+          - sqs:ListQueueTags
+          - sts:GetCallerIdentity
+          - support:*
+          - workspaces:DescribeTags
+          - workspaces:DescribeWorkspaceBundles
+          - workspaces:DescribeWorkspaceDirectories
+          - workspaces:DescribeWorkspaces
+          - workspaces:DescribeWorkspacesConnectionStatus
+          Effect: Allow
+          Resource: "*"
+
+  PowerUserPolicy:
+    Type: AWS::IAM::Policy
+    Condition: AddPowerUser
+    Properties:
+      PolicyName: DivvyCloud-PowerUser-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Action:
+          - autoscaling:*
+          - cloudfront:*
+          - cloudsearch:*
+          - cloudtrail:*
+          - cloudwatch:*
+          - config:*
+          - dax:*
+          - dynamodb:*
+          - ec2:*
+          - eks:*
+          - ecr:*
+          - ecs:*
+          - elasticache:*
+          - elasticfilesystem:*
+          - elasticloadbalancing:*
+          - elasticmapreduce:*
+          - es:*
+          - events:*
+          - firehose:*
+          - guardduty:*
+          - iam:*
+          - kinesis:*
+          - kms:*
+          - lambda:*
+          - organizations:*
+          - rds:*
+          - redshift:*
+          - route53:*
+          - sagemaker:*
+          - s3:*
+          - s3control:*
+          - ses:*
+          - sns:*
+          - sqs:*
+          - support:*
+          - workspaces:*
+          Effect: Allow
+          Resource: "*"
+        - Action:
+          - acm:DescribeCertificate
+          - acm:ListCertificates
+          - acm:ListTagsForCertificate
+          Effect: Allow
+          Resource: "*"
+        - Action:
+          - cloudformation:DescribeStackResource
+          - cloudformation:DescribeStackResources
+          - cloudformation:DescribeStacks
+          - cloudformation:GetTemplate
+          - cloudformation:DeleteStack
+          - cloudformation:ListStackResources
+          - cloudformation:ListStacks
+          Effect: Allow
+          Resource: "*"
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref Role
+      InstanceProfileName: DivvyCloudInstanceProfile      
+
+Outputs:
+  RoleARNID:
+    Description: Your Role ARN ID
+    Value:
+      Fn::GetAtt:
+      - Role
+      - Arn

@@ -1,3 +1,7 @@
+#CFT for creating a cross acocunt role to be used with your DivvyCloud instance. This is for the external account (not the local account that is running the DivvyCloud tenant)
+#https://docs.divvycloud.com/docs/instance-assume-role-aws
+#Alex C
+#1-25-19
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 

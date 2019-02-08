@@ -18,17 +18,10 @@ Parameters:
     ConstraintDescription: OrgId can not be blank
     Description: REQUIRED - ID of the organization this account is in. Ex. o-6ovjaffaj3 
 
-  CreateNewBucket:
-    Description: Create a new S3 bucket?
-    Default: false
-    Type: String
-    AllowedValues: [true, false]
-
   S3BucketName:
     Type: String
-    Default: ''
-    AllowedPattern: '^[^A-Z]+$'
-    ConstraintDescription: BucketName can not be blank and can not have capital letters
+    AllowedPattern: '[a-z0-9.-]{3,63}'
+    ConstraintDescription: The bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, periods, and dashes.
     Description: REQUIRED - Name of a new S3 bucket that will be created that CloudTrail wil log to (don't forget that bucket names are global)
 
   LogGroupName:
@@ -121,7 +114,6 @@ Resources:
 
   S3BucketPolicy:
     DependsOn: S3BucketForCloudTrailLogs
-    Condition: CreateBucket
     Type: AWS::S3::BucketPolicy
     Properties: 
       Bucket: !Ref S3BucketForCloudTrailLogs

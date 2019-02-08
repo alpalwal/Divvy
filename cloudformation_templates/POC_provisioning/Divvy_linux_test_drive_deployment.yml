@@ -1,0 +1,147 @@
+# Single instance deployment of DivvyCloud
+# https://docs.divvycloud.com/docs/linux-test-drive-deployment
+# Alex C 1/18/19
+
+#Recommended specs:
+# 4 cores
+# 8 GB of memory
+# 30 GB root volume
+
+Parameters: 
+  InstanceType: 
+    Type: String
+    Default: m5.large
+    AllowedValues: 
+      - t3.large
+      - c5.large
+      - m5.large
+      - t3.xlarge
+      - c5.xlarge
+      - m5.xlarge
+      - c4.xlarge
+      - t3.2xlarge
+      - c5.2xlarge
+      - m5.2xlarge
+      - c4.2xlarge
+      - c5.4xlarge
+      - m5.4xlarge
+    Description: Instance size for the Divvy system
+  VpcId:
+    Description: VPC Id for the instance to be deployed in
+    Type: AWS::EC2::VPC::Id
+    Default: ''
+    AllowedPattern: '\S{1,}'
+    ConstraintDescription: VPC ID can not be blank
+  InstanceSubnet:
+    Description: Subnet the instance to be deployed in
+    Type: AWS::EC2::Subnet::Id
+    Default: ''
+    AllowedPattern: '\S{1,}'
+    ConstraintDescription: Subnet ID can not be blank
+  KeyPair:
+    Description: Optional key pair for the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: ''
+  InstanceProfileName:
+    Description: Optional instance profile to be attached to the instance. Just add the name, not the whole ARN
+    Type: String
+    Default: ''
+
+Conditions: 
+  AddInstanceProfile: !Not [!Equals [ !Ref InstanceProfileName, '' ]]
+  AddKeyPair: !Not [!Equals [ !Ref KeyPair, '' ]]
+
+Mappings:
+  RegionMap:
+    ap-northeast-3:
+      AMI: ami-05e896b95030bd37c
+    sa-east-1:
+      AMI: ami-03c6239555bb12112
+    eu-west-1:
+      AMI: ami-00035f41c82244dab
+    ap-south-1:
+      AMI: ami-0d773a3b7bb2bb1c1
+    us-east-2:
+      AMI: ami-0f65671a86f061fcd
+    us-west-2:
+      AMI: ami-0bbe6b35405ecebdb
+    us-east-1:
+      AMI: ami-0ac019f4fcb7cb7e6
+    ca-central-1:
+      AMI: ami-0427e8367e3770df1
+    ap-southeast-1:
+      AMI: ami-0c5199d385b432989
+    ap-southeast-2:
+      AMI: ami-07a3bd4944eb120a0
+    eu-north-1:
+      AMI: ami-440d823a
+    eu-west-3:
+      AMI: ami-08182c55a1c188dee
+    ap-northeast-1:
+      AMI: ami-07ad4b1c3af1ea214
+    ap-northeast-2:
+      AMI: ami-06e7b9c5e0c4dd014
+    eu-central-1:
+      AMI: ami-0bdf93799014acdc4
+    eu-west-2:
+      AMI: ami-0b0a60c0a2bd40612
+    us-west-1:
+      AMI: ami-063aa838bd7631e0b      
+
+Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow connection to Divvy UI
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 8001
+        ToPort: 8001
+        CidrIp: 0.0.0.0/0
+
+  EC2Instance:
+      Type: AWS::EC2::Instance
+      Properties:
+        KeyName: 
+          Fn::If:
+            - AddKeyPair
+            - Ref: KeyPair
+            - Ref: AWS::NoValue
+        ImageId: !FindInMap 
+          - RegionMap
+          - !Ref 'AWS::Region'
+          - AMI
+        InstanceType: !Ref InstanceType
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        SubnetId: !Ref InstanceSubnet
+        IamInstanceProfile: 
+          Fn::If:
+          - AddInstanceProfile
+          - Ref: InstanceProfileName
+          - Ref: AWS::NoValue
+        BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 30
+        Tags: 
+          - Key: Name
+            Value: DivvyPOC
+        UserData:
+          Fn::Base64:
+            Fn::Join:
+            - ''
+            - - "#!/bin/bash -v\n"
+              - "curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | sudo bash\n"
+              - "sudo echo \"@reboot /usr/local/bin/docker-compose down\" >> /etc/crontab\n"
+              - "sudo echo \"@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d\" >> /etc/crontab\n"
+  
+Outputs:
+  PublicIp:
+    Value:
+      Fn::GetAtt:
+      - EC2Instance
+      - PublicIp
+    Description: Connect to this IP:8001 to log into DivvyCloud

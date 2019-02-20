@@ -6,6 +6,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters: 
+  ExistingTrail:
+    Description: Is there an existing CloudTrail to use?
+    Default: false
+    Type: String
+    AllowedValues: [true, false]
+
   RoleName:
     Type: String
     AllowedPattern: '\S{1,}'
@@ -15,14 +21,20 @@ Parameters:
   S3BucketName:
     Type: String
     AllowedPattern: '[a-z0-9.-]{3,63}'
+    Default: bucket-name-here
     ConstraintDescription: The bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, periods, and dashes.
-    Description: REQUIRED - Name of a new S3 bucket that will be created that CloudTrail wil log to (don't forget that bucket names are global)
+    Description: Name of a new S3 bucket that will be created that CloudTrail wil log to (don't forget that bucket names are global)
 
   LogGroupName:
     Type: String
     AllowedPattern: '\S{1,}'
+    Default: DivvyCloudEDHCloudTrailLogs
     ConstraintDescription: LogGroupName can not be blank
-    Description: REQUIRED - Name of the CloudWatch Log Group CloudTrail will log to  
+    Description: Name of the CloudWatch Log Group CloudTrail will log to  
+
+Conditions:
+  ShouldCreateTrail:
+    !Equals [false, !Ref ExistingTrail]
 
 Resources:
   EDHProducerPolicy:
@@ -72,12 +84,14 @@ Resources:
           Resource: !Sub arn:aws:iam::${AWS::AccountId}:policy/service-role/event-driven-harvest/*eventbus-policy
 
   CloudWatchLogGroup:
+    Condition: ShouldCreateTrail
     DependsOn: CloudTrailCWLogsDeliveryRole
     Type: AWS::Logs::LogGroup
     Properties: 
       LogGroupName: !Ref LogGroupName
 
   CloudTrailCWLogsDeliveryPolicy:
+    Condition: ShouldCreateTrail
     DependsOn: CloudTrailCWLogsDeliveryRole
     Type: AWS::IAM::Policy
     Properties:
@@ -103,6 +117,7 @@ Resources:
           - { LogGroupName: !Ref LogGroupName }
   
   CloudTrailCWLogsDeliveryRole:
+    Condition: ShouldCreateTrail
     Type: AWS::IAM::Role
     Properties: 
       AssumeRolePolicyDocument:
@@ -116,11 +131,13 @@ Resources:
       RoleName: CloudTrailCloudWatchLogsDelivery-EDH
           
   S3BucketForCloudTrailLogs:
+    Condition: ShouldCreateTrail
     Type: AWS::S3::Bucket
     Properties: 
       BucketName: !Ref S3BucketName
 
   S3BucketPolicy:
+    Condition: ShouldCreateTrail
     DependsOn: S3BucketForCloudTrailLogs
     Type: AWS::S3::BucketPolicy
     Properties: 
@@ -149,6 +166,7 @@ Resources:
               s3:x-amz-acl: bucket-owner-full-control
 
   CloudTrail:
+    Condition: ShouldCreateTrail
     DependsOn: CloudTrailCWLogsDeliveryPolicy
     Type: AWS::CloudTrail::Trail
     Properties:

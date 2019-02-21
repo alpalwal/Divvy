@@ -167,7 +167,9 @@ Resources:
 
   CloudTrail:
     Condition: ShouldCreateTrail
-    DependsOn: CloudTrailCWLogsDeliveryPolicy
+    DependsOn: 
+      - CloudTrailCWLogsDeliveryPolicy
+      - S3BucketPolicy
     Type: AWS::CloudTrail::Trail
     Properties:
       CloudWatchLogsLogGroupArn: !GetAtt CloudWatchLogGroup.Arn

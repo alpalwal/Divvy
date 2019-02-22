@@ -1,5 +1,4 @@
-#CFT for creating a cross account role to be used with your DivvyCloud instance. This is for the external account
-#(not the local account that is running the DivvyCloud tenant)
+#CFT for creating an instance role to be used with your DivvyCloud instance. This is for the local account (not an external account that is being assumed into)
 #https://docs.divvycloud.com/docs/instance-assume-role-aws
 #Alex C
 #1-25-19
@@ -14,13 +13,6 @@ Parameters:
       - Standard User
       - Power User
     Description: Type of permissions to give
-  Externalid:
-    Type: String
-    Description: Enter Divvy External ID
-  SourceAccountId:
-    Type: String
-    AllowedPattern: \d{12}
-    Description: Enter source account ID that will be assuming the role. A 12 digit number is expected (ex. 123456789012)
 
 Conditions:
   AddStandardUser: !Equals [ !Ref TypeOfUser, "Standard User" ]
@@ -35,19 +27,28 @@ Resources:
         Statement:
         - Effect: Allow
           Principal:
-            AWS: !Join [ ":", [ 'arn:aws:iam:', !Ref SourceAccountId, root ] ]
+            Service:
+            - ec2.amazonaws.com
           Action: sts:AssumeRole
-          Condition:
-            StringEquals:
-              sts:ExternalId:
-                Ref: Externalid
+      Path: "/"
 
-  #Read only policy exceeds AWS limits and must be broken into two
+  STSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: DivvyCloud-STS-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://divvvvvyyybuuucckkeett/STSPolicy.yml
+
   ReadOnlyPolicy1:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
-      PolicyName: DivvyCloudStandardUserPolicy1
+      PolicyName: DivvyCloud-StandardUser-Policy1
       Roles:
       - Ref: Role
       PolicyDocument:
@@ -56,12 +57,11 @@ Resources:
           Parameters:
             Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy1.yml
 
-  #Read only policy exceeds AWS limits and must be broken into two. There is no significance to the breakdown
   ReadOnlyPolicy2:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
-      PolicyName: DivvyCloudStandardUserPolicy2
+      PolicyName: DivvyCloud-StandardUser-Policy2
       Roles:
       - Ref: Role
       PolicyDocument:
@@ -83,6 +83,14 @@ Resources:
           Parameters:
             Location: s3://divvvvvyyybuuucckkeett/PowerUserPolicy.yml
 
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref Role
+      InstanceProfileName: DivvyCloudInstanceProfile      
+
 Outputs:
   RoleARNID:
     Description: Your Role ARN ID
@@ -90,7 +98,3 @@ Outputs:
       Fn::GetAtt:
       - Role
       - Arn
-  ExternalID:
-    Description: Your External ID
-    Value:
-      Ref: Externalid

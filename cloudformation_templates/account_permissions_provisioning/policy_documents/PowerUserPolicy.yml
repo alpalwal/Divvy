@@ -1,0 +1,58 @@
+# Power user policy. Updated x-x-2019
+Version: '2012-10-17'
+Statement:
+- Action:
+  - autoscaling:*
+  - cloudfront:*
+  - cloudsearch:*
+  - cloudtrail:*
+  - cloudwatch:*
+  - config:*
+  - dax:*
+  - dynamodb:*
+  - ec2:*
+  - eks:*
+  - ecr:*
+  - ecs:*
+  - elasticache:*
+  - elasticfilesystem:*
+  - elasticloadbalancing:*
+  - elasticmapreduce:*
+  - es:*
+  - events:*
+  - firehose:*
+  - guardduty:*
+  - iam:*
+  - kinesis:*
+  - kms:*
+  - lambda:*
+  - organizations:*
+  - rds:*
+  - redshift:*
+  - route53:*
+  - sagemaker:*
+  - s3:*
+  - s3control:*
+  - ses:*
+  - sns:*
+  - sqs:*
+  - support:*
+  - workspaces:*
+  Effect: Allow
+  Resource: "*"
+- Action:
+  - acm:DescribeCertificate
+  - acm:ListCertificates
+  - acm:ListTagsForCertificate
+  Effect: Allow
+  Resource: "*"
+- Action:
+  - cloudformation:DescribeStackResource
+  - cloudformation:DescribeStackResources
+  - cloudformation:DescribeStacks
+  - cloudformation:GetTemplate
+  - cloudformation:DeleteStack
+  - cloudformation:ListStackResources
+  - cloudformation:ListStacks
+  Effect: Allow
+  Resource: "*"

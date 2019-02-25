@@ -54,7 +54,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy1.yml
+            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy1.json
 
   #Read only policy exceeds AWS limits and must be broken into two. There is no significance to the breakdown
   ReadOnlyPolicy2:
@@ -68,7 +68,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy2.yml
+            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy2.json
 
   PowerUserPolicy:
     Type: AWS::IAM::Policy
@@ -81,7 +81,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/PowerUserPolicy.yml
+            Location: s3://divvvvvyyybuuucckkeett/PowerUserPolicy.json
 
 Outputs:
   RoleARNID:

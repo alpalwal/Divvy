@@ -1,9 +1,0 @@
-#STS DOC
-Version: '2012-10-17'
-Statement:
-- Action: sts:AssumeRole
-  Effect: Allow
-  Resource: arn:aws:iam::*:role/*
-- Action: sts:GetCallerIdentity
-  Effect: Allow
-  Resource: "*"

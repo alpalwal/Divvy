@@ -4,6 +4,7 @@
 #2-7-19
 
 AWSTemplateFormatVersion: '2010-09-09'
+Description: DivvyCloud Policies and optional CloudTrail for EDH
 
 Parameters: 
   ExistingTrail:

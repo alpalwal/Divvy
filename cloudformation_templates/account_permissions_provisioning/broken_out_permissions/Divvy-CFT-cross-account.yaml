@@ -1,8 +1,6 @@
-#CFT for creating a cross account role to be used with your DivvyCloud instance. This is for the external account
+#CFT for creating a cross account role to be used with your DivvyCloud instances. This is for the external accounts
 #(not the local account that is running the DivvyCloud tenant)
 #https://docs.divvycloud.com/docs/instance-assume-role-aws
-#Alex C
-#1-25-19
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: DivvyCloud Cross Account Role and Policies
@@ -56,7 +54,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy1.json
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy1.json
 
   #Read only policy exceeds AWS limits and must be broken into two. There is no significance to the breakdown
   ReadOnlyPolicy2:
@@ -70,7 +68,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy2.json
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy2.json
 
   PowerUserPolicy:
     Type: AWS::IAM::Policy
@@ -83,7 +81,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/PowerUserPolicy.json
+            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
 
 Outputs:
   RoleARNID:

@@ -1,7 +1,6 @@
-#CFT for creating an instance role to be used with your DivvyCloud instance. This is for the local account (not an external account that is being assumed into)
+#CFT for creating an instance role to be used with your DivvyCloud instances. This is for the local account (not an
+#external account that is being assumed into)
 #https://docs.divvycloud.com/docs/instance-assume-role-aws
-#Alex C
-#1-25-19
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: DivvyCloud Instance Assume Role and Policies
@@ -44,7 +43,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/STSPolicy.json
+            Location: s3://get.divvycloud.com/policies/STSPolicy.json
 
   ReadOnlyPolicy1:
     Type: AWS::IAM::Policy
@@ -57,7 +56,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy1.json
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy1.json
 
   ReadOnlyPolicy2:
     Type: AWS::IAM::Policy
@@ -70,7 +69,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/ReadOnlyPolicy2.json
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy2.json
 
   PowerUserPolicy:
     Type: AWS::IAM::Policy
@@ -83,7 +82,7 @@ Resources:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://divvvvvyyybuuucckkeett/PowerUserPolicy.json
+            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile

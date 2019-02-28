@@ -12,17 +12,29 @@ Parameters:
     Type: String
     Default: m5.large
     AllowedValues: 
+      - t3.large
+      - c5.large
       - m5.large
+      - t3.xlarge
+      - c5.xlarge
       - m5.xlarge
+      - c4.xlarge
+      - t3.2xlarge
+      - c5.2xlarge
       - m5.2xlarge
+
       - m5.4xlarge
     Description: Instance size for the Divvy system
   VpcId:
     Description: REQUIRED - VPC Id for the instance to be deployed in
     Type: AWS::EC2::VPC::Id
     Default: ''
+  InstanceSubnet:
+    Description: REQUIRED - Subnet the instance to be deployed in
+    Type: AWS::EC2::Subnet::Id
+    Default: ''
   KeyPair:
-    Description: Optional key pair for the instance
+    Description: REQUIRED - Key pair for the instance
     Type: AWS::EC2::KeyPair::KeyName
     Default: ''
   InstanceProfileName:
@@ -86,11 +98,7 @@ Resources:
   EC2Instance:
       Type: AWS::EC2::Instance
       Properties:
-        KeyName: 
-          Fn::If:
-            - AddKeyPair
-            - Ref: KeyPair
-            - Ref: AWS::NoValue
+        KeyName: !Ref KeyPair
         ImageId: !FindInMap 
           - RegionMap
           - !Ref 'AWS::Region'
@@ -98,6 +106,7 @@ Resources:
         InstanceType: !Ref InstanceType
         SecurityGroupIds:
           - !Ref InstanceSecurityGroup
+        SubnetId: !Ref InstanceSubnet
         IamInstanceProfile: 
           Fn::If:
           - AddInstanceProfile

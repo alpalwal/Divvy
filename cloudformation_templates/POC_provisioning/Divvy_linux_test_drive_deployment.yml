@@ -9,7 +9,7 @@ Parameters:
     - m5.large
     - m5.xlarge
     - m5.2xlarge
-    ConstraintDescription: must be a valid EC2 instance type.
+    ConstraintDescription: Must be a valid EC2 instance type.
   KeyName:
     Description: REQUIRED - Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName

@@ -2,11 +2,12 @@
 
 1. Spin up an instance that meets these requirements: https://docs.divvycloud.com/docs/server-and-network-recommendations
 
-2. Spin up an external database (RDS, CloudSQL, etc.) using the requirements defined in the link above
+2. Spin up an external database (RDS, CloudSQL, etc.) using the requirements defined in the link above  
+    *MAKE SURE THE DB IS RUNNING THE LATEST VERSION OF MYSQL 5.7*  
     Note down the hostname or IP, the username, and password for the DB
 
 3. Verify that you have connectivity from the instance to the database (networking rules can be tricky)  
-``` tn <db hostname or ip> 3306 ```
+``` telnet <db hostname or ip> 3306 ```
 
 Good:
 ```root@ip-172-31-1-18:/home/ubuntu# telnet standalonerds.coqr2r2zaakr.us-east-1.rds.amazonaws.com 3306
@@ -59,7 +60,7 @@ PASSWORD="temppassword"
 6. Install the MySQL client and connect to your database from the instance
 
 ```
-sudo apt-get install -y mysql client
+sudo apt-get install -y mysql-client
 mysql -h $HOST -u $USERNAME -p
 # It'll prompt you to enter your password
 ```

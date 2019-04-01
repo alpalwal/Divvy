@@ -22,6 +22,17 @@ Parameters:
     Default: 0.0.0.0/0
     AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  InstanceProfileRole:
+    Description: Optional - Instance profile name to attach to the instance
+    Type: String
+
+Conditions:
+  AttachInstanceProfile:
+    Fn::Not:
+    - Fn::Equals:
+      - ''
+      - Ref: InstanceProfileRole
+      
 Mappings:
   RegionMap:
     ap-northeast-1: 
@@ -185,6 +196,11 @@ Resources:
         - RegionMap
         - !Ref 'AWS::Region'
         - AMI
+      IamInstanceProfile:
+        Fn::If:
+        - AttachInstanceProfile
+        - Ref: InstanceProfileRole
+        - Ref: AWS::NoValue  
       SecurityGroupIds:
       - Ref: DivvyCloudSecurityGroup
       SubnetId:

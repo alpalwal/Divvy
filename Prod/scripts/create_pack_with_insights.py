@@ -4,10 +4,17 @@
 
 import json
 import requests
+import getpass
 
 # Username/password to authenticate against the API
 username = ""
-password = ""
+password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+
+if not password:
+    passwd = getpass.getpass('Password:')
+else:
+    passwd = password
+
 
 # API URLs
 base_url = 'https://sales-demo.divvycloud.com'
@@ -72,7 +79,7 @@ insight_configs = [
 def get_auth_token():
     response = requests.post(
         url=login_url,
-        data=json.dumps({"username": username, "password": password}),
+        data=json.dumps({"username": username, "password": passwd}),
         headers={
             'Content-Type': 'application/json;charset=UTF-8',
             'Accept': 'application/json'

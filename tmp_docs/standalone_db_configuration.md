@@ -1,30 +1,4 @@
-# Create the infrastructure
 
-1. Spin up an instance that meets these requirements: https://docs.divvycloud.com/docs/server-and-network-recommendations
-
-2. Spin up an external database (RDS, CloudSQL, etc.) using the requirements defined in the link above  
-    *MAKE SURE THE DB IS RUNNING THE LATEST VERSION OF MYSQL 5.7*  
-    Note down the hostname or IP, the username, and password for the DB
-
-3. Verify that you have connectivity from the instance to the database (networking rules can be tricky)  
-``` telnet <db hostname or ip> 3306 ```
-
-Good:
-```root@ip-172-31-1-18:/home/ubuntu# telnet standalonerds.coqr2r2zaakr.us-east-1.rds.amazonaws.com 3306
-Trying 172.31.54.207...
-Connected to standalonerds.coqr2r2zaakr.us-east-1.rds.amazonaws.com.
-Escape character is '^]'.
-J
-5.6.40?@aG"q6W2?6U,y@q8dlu%Vmysql_native_password^C
-Connection closed by foreign host.
-```
-
-Bad:
-```root@ip-172-31-1-18:/home/ubuntu# telnet standalonerds.coqr2r2zaakr.us-east-1.rds.amazonaws.com 3306
-Trying 172.31.54.207...
-<lags here and nothing happens>
-^C
-```
 
 # Configure the instance
 
@@ -52,7 +26,6 @@ sudo mv /tmp/docker-compose.yml.tmp docker-compose.yml
 
 5. Set your database credentials as environment variables (temporarily)
 ```
-HOST="standalonerds.coqr2r2zaakr.us-east-1.rds.amazonaws.com"
 USERNAME="tempuser"
 PASSWORD="temppassword"
 ```

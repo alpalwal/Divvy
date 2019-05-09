@@ -1,0 +1,252 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  AttachInstanceProfile:
+    Fn::Not:
+    - Fn::Equals:
+      - ''
+      - Ref: InstanceProfileRole
+Description: This template creates a VPC and instance to run DivvyCloud POC. 
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      '64': ami-097beac0bacfefe65
+    ap-northeast-2:
+      '64': ami-04ca5d9535faed24a
+    ap-northeast-3:
+      '64': ami-00a847a6609cba4fc
+    ap-south-1:
+      '64': ami-0f4ab593bd4e5b352
+    ap-southeast-1:
+      '64': ami-0f9f33c210de47b63
+    ap-southeast-2:
+      '64': ami-074a2888bf09cab0a
+    ca-central-1:
+      '64': ami-040bf52a85a5b3f6c
+    cn-north-1:
+      '64': ami-09a8627c0565bbdbc
+    cn-northwest-1:
+      '64': ami-09b1225e9a1d84e4c
+    eu-central-1:
+      '64': ami-05710338b6a5013d1
+    eu-north-1:
+      '64': ami-09d25a77
+    eu-west-1:
+      '64': ami-0e219142c0bee4a6e
+    eu-west-2:
+      '64': ami-021202ee82d116ad0
+    eu-west-3:
+      '64': ami-0acfe51b617393c70
+    sa-east-1:
+      '64': ami-058732e2bf6d7acb4
+    us-east-1:
+      '64': ami-028d6461780695a43
+    us-east-2:
+      '64': ami-0dae3d101cd772fae
+    us-gov-east-1:
+      '64': ami-b740a6c6
+    us-gov-west-1:
+      '64': ami-3a86f05b
+    us-west-1:
+      '64': ami-069339bea0125f50d
+    us-west-2:
+      '64': ami-09b42c38b449cfa59
+Outputs:
+  URL:
+    Description: Connect to this URL to log into DivvyCloud (give it a couple minutes
+      to install/boot)
+    Value:
+      Fn::Join:
+      - ''
+      - - http://
+        - Fn::GetAtt:
+          - EC2Instance
+          - PublicIp
+        - :8001
+Parameters:
+  InstanceProfileRole:
+    Description: Optional - Instance profile (role) name to attach to the instance
+    Type: String
+  InstanceType:
+    AllowedValues:
+    - m5.large
+    - m5.xlarge
+    - m5.2xlarge
+    ConstraintDescription: Must be a valid EC2 instance type.
+    Default: m5.large
+    Description: EC2 instance type
+    Type: String
+  KeyName:
+    Default: ''
+    Description: REQUIRED - Name of an existing EC2 KeyPair to enable SSH access to
+      the instance
+    Type: AWS::EC2::KeyPair::KeyName
+  NetworkAccessLocation:
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+    Default: 0.0.0.0/0
+    Description: The IP address range that the instance will be open on for port 22 and 8001
+    MaxLength: '18'
+    MinLength: '9'
+    Type: String
+Resources:
+  AttachGateway:
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::VPCGatewayAttachment
+  DivvyCloudSecurityGroup:
+    Properties:
+      GroupDescription: Enable SSH access via port 22 and access to the console on
+        8001
+      SecurityGroupIngress:
+      - CidrIp:
+          Ref: NetworkAccessLocation
+        FromPort: '8001'
+        IpProtocol: tcp
+        ToPort: '8001'
+      - CidrIp:
+          Ref: NetworkAccessLocation
+        FromPort: '22'
+        IpProtocol: tcp
+        ToPort: '22'
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::SecurityGroup
+  EC2Instance:
+    Metadata:
+      Comment: Install DivvyCloud software
+    Properties:
+      IamInstanceProfile:
+        Fn::If:
+        - AttachInstanceProfile
+        - Ref: InstanceProfileRole
+        - Ref: AWS::NoValue
+      ImageId:
+        Fn::FindInMap:
+        - RegionMap
+        - Ref: AWS::Region
+        - '64'
+      InstanceType:
+        Ref: InstanceType
+      KeyName:
+        Ref: KeyName
+      SecurityGroupIds:
+      - Ref: DivvyCloudSecurityGroup
+      SubnetId:
+        Ref: Subnet
+      Tags:
+      - Key: Name
+        Value: DivvyPOC
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - ''
+          - - '#!/bin/bash -v
+
+              '
+            - 'curl -s https://s3.amazonaws.com/get.divvycloud.com/index.html | sudo
+              bash
+
+              '
+            - 'sudo echo "@reboot /usr/local/bin/docker-compose down" >> /etc/crontab
+
+              '
+            - 'sudo echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml
+              up -d" >> /etc/crontab
+
+              '
+    Type: AWS::EC2::Instance
+  InboundResponsePortsNetworkAclEntry:
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'false'
+      NetworkAclId:
+        Ref: NetworkAcl
+      PortRange:
+        From: '1'
+        To: '65535'
+      Protocol: '6'
+      RuleAction: allow
+      RuleNumber: '100'
+    Type: AWS::EC2::NetworkAclEntry
+  InternetGateway:
+    Properties:
+      Tags:
+      - Key: Application
+        Value:
+          Ref: AWS::StackId
+    Type: AWS::EC2::InternetGateway
+  NetworkAcl:
+    Properties:
+      Tags:
+      - Key: Application
+        Value:
+          Ref: AWS::StackId
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::NetworkAcl
+  OutBoundNetworkAclEntry:
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'true'
+      NetworkAclId:
+        Ref: NetworkAcl
+      PortRange:
+        From: '1'
+        To: '65535'
+      Protocol: '6'
+      RuleAction: allow
+      RuleNumber: '100'
+    Type: AWS::EC2::NetworkAclEntry
+  Route:
+    DependsOn: AttachGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+      RouteTableId:
+        Ref: RouteTable
+    Type: AWS::EC2::Route
+  RouteTable:
+    Properties:
+      Tags:
+      - Key: Application
+        Value:
+          Ref: AWS::StackId
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::RouteTable
+  Subnet:
+    Properties:
+      CidrBlock: 10.16.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Application
+        Value:
+          Ref: AWS::StackId
+      VpcId:
+        Ref: VPC
+    Type: AWS::EC2::Subnet
+  SubnetNetworkAclAssociation:
+    Properties:
+      NetworkAclId:
+        Ref: NetworkAcl
+      SubnetId:
+        Ref: Subnet
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+  SubnetRouteTableAssociation:
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      SubnetId:
+        Ref: Subnet
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  VPC:
+    Properties:
+      CidrBlock: 10.16.0.0/16
+      Tags:
+      - Key: Name
+        Value: DivvyPOC          
+    Type: AWS::EC2::VPC

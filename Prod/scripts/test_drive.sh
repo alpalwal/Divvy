@@ -1,4 +1,6 @@
 #!/bin/bash
+# DivvyCloud install script for the test-drive installation 
+# Supports Ubuntu, RHEL, AWS Linux, and CentOS
 
 CYAN='\033[0;36m'
 NC='\033[0m'
@@ -12,7 +14,7 @@ then
 else
           echo -e "${CYAN}[DOCKER NOT FOUND, DOWNLOADING AND INSTALLING]${NC}"
           # If RedHat/CentOS, start the docker service
-          if [ -f /etc/redhat-release ]; then
+          if [ -f /etc/redhat-release ] || [ -f /etc/system-release ]; then
               sudo yum install -y ftp://bo.mirror.garr.it/1/slc/centos/7.1.1503/extras/x86_64/Packages/container-selinux-2.9-4.el7.noarch.rpm
               sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
               sudo yum install -y docker-ce docker-ce-cli containerd.io
@@ -33,7 +35,7 @@ then
 else
     echo -e "${CYAN}[DOCKER-COMPOSE NOT FOUND, DOWNLOADING AND INSTALLING]${NC}"
 
-    if [ -f /etc/redhat-release ]; then ## Redhat
+    if [ -f /etc/redhat-release ] || [ -f /etc/system-release ]; then ## Redhat
         sudo curl -L "https://github.com/docker/compose/releases/download/1.14.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
         sudo chmod +x /usr/bin/docker-compose
     else # Ubuntu
@@ -57,7 +59,7 @@ sudo usermod -aG docker $USER
 echo -e "${CYAN}[DOWNLOADING LATEST DIVVYCLOUD CONTAINERS]${NC}"
 
 # If RedHat/CentOS
-if [ -f /etc/redhat-release ]; then
+if [ -f /etc/redhat-release ] || [ -f /etc/system-release ]; then
     sudo /usr/bin/docker-compose pull
     echo -e "${CYAN}[STARTING DIVVYCLOUD]${NC}"
     sudo /usr/bin/docker-compose up -d
@@ -84,6 +86,6 @@ crontab mycron
 rm mycron
 
 # If RedHat/CentOS - start docker on boot 
-if [ -f /etc/redhat-release ]; then
+if [ -f /etc/redhat-release ] || [ -f /etc/system-release ]; then
     sudo chkconfig docker on
 fi

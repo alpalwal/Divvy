@@ -3,8 +3,7 @@
 #https://docs.divvycloud.com/docs/instance-assume-role-aws
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: DivvyCloud Instance Assume Role and Policies
-
+Description: This template creates an instance role to allow the DivvyCloud instance to collect data about this account and assume roles into other accounts for data collection.
 Parameters: 
   TypeOfUser: 
     Type: String
@@ -12,40 +11,34 @@ Parameters:
     AllowedValues: 
       - Standard User
       - Power User
-    Description: Type of permissions to give
+    Description: Type of permissions to give (Standard for readonly, Power for read/write)
 
 Conditions:
   AddStandardUser: !Equals [ !Ref TypeOfUser, "Standard User" ]
   AddPowerUser: !Equals [ !Ref TypeOfUser, "Power User" ]
 
 Resources:
-  Role:
-    Type: AWS::IAM::Role
-    DeletionPolicy: Retain
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
     Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - ec2.amazonaws.com
-          Action: sts:AssumeRole
       Path: "/"
+      Roles:
+      - !Ref Role
+      InstanceProfileName: DivvyCloudInstanceProfile
 
-  STSPolicy:
+  PolicyPowerUser:
     Type: AWS::IAM::Policy
+    Condition: AddPowerUser
     Properties:
-      PolicyName: DivvyCloud-STS-Policy
+      PolicyName: DivvyCloud-PowerUser-Policy
       Roles:
       - Ref: Role
       PolicyDocument:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://get.divvycloud.com/policies/STSPolicy.json
-
-  ReadOnlyPolicy1:
+            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
+  PolicyReadOnly1:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
@@ -58,7 +51,7 @@ Resources:
           Parameters:
             Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy1.json
 
-  ReadOnlyPolicy2:
+  PolicyReadOnly2:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
@@ -71,28 +64,31 @@ Resources:
           Parameters:
             Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy2.json
 
-  PowerUserPolicy:
+  PolicySTS:
     Type: AWS::IAM::Policy
-    Condition: AddPowerUser
     Properties:
-      PolicyName: DivvyCloud-PowerUser-Policy
+      PolicyName: DivvyCloud-STS-Policy
       Roles:
       - Ref: Role
       PolicyDocument:
         'Fn::Transform':
           Name: 'AWS::Include'
           Parameters:
-            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
+            Location: s3://get.divvycloud.com/policies/STSPolicy.json
 
-  InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
-    DeletionPolicy: Retain
+  Role:
+    Type: AWS::IAM::Role
     Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
       Path: "/"
-      Roles:
-      - !Ref Role
-      InstanceProfileName: !Sub 'DivvyCloudInstanceProfile-${AWS::StackName}'
-          
+
 Outputs:
   RoleARNID:
     Description: Your Role ARN ID

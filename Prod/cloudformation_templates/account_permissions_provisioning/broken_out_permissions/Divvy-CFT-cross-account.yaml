@@ -3,18 +3,20 @@
 #https://docs.divvycloud.com/docs/instance-assume-role-aws
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: DivvyCloud Cross Account Role and Policies
-
-Parameters: 
-  TypeOfUser: 
+Description: This template creates a cross account role to allow DivvyCloud to connect to this account if the software is running in a different account
+Parameters:
+  TypeOfUser:
     Type: String
     Default: Standard User
-    AllowedValues: 
+    AllowedValues:
       - Standard User
       - Power User
-    Description: Type of permissions to give
+    Description: Type of permissions to give (Standard for readonly, Power for read/write)
   Externalid:
     Type: String
+    Default: divvycloud
+    AllowedPattern: '\S+'
+    ConstraintDescription: Please enter an external ID
     Description: Enter Divvy External ID
   SourceAccountId:
     Type: String
@@ -26,24 +28,21 @@ Conditions:
   AddPowerUser: !Equals [ !Ref TypeOfUser, "Power User" ]
 
 Resources:
-  Role:
-    Type: AWS::IAM::Role
-    DeletionPolicy: Retain
+  PolicyPowerUser:
+    Type: AWS::IAM::Policy
+    Condition: AddPowerUser
     Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            AWS: !Join [ ":", [ 'arn:aws:iam:', !Ref SourceAccountId, root ] ]
-          Action: sts:AssumeRole
-          Condition:
-            StringEquals:
-              sts:ExternalId:
-                Ref: Externalid
+      PolicyName: DivvyCloud-PowerUser-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
 
   #Read only policy exceeds AWS limits and must be broken into two
-  ReadOnlyPolicy1:
+  PolicyReadOnly1:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
@@ -57,7 +56,7 @@ Resources:
             Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy1.json
 
   #Read only policy exceeds AWS limits and must be broken into two. There is no significance to the breakdown
-  ReadOnlyPolicy2:
+  PolicyReadOnly2:
     Type: AWS::IAM::Policy
     Condition: AddStandardUser
     Properties:
@@ -70,27 +69,29 @@ Resources:
           Parameters:
             Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy2.json
 
-  PowerUserPolicy:
-    Type: AWS::IAM::Policy
-    Condition: AddPowerUser
+  Role:
+    Type: AWS::IAM::Role
     Properties:
-      PolicyName: DivvyCloud-PowerUser-Policy
-      Roles:
-      - Ref: Role
-      PolicyDocument:
-        'Fn::Transform':
-          Name: 'AWS::Include'
-          Parameters:
-            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS: !Join [ ":", [ 'arn:aws:iam:', !Ref SourceAccountId, root ] ]
+          Action: sts:AssumeRole
+          Condition:
+            StringEquals:
+              sts:ExternalId:
+                Ref: Externalid
 
 Outputs:
+  ExternalID:
+    Description: Your External ID
+    Value:
+      Ref: Externalid
   RoleARNID:
     Description: Your Role ARN ID
     Value:
       Fn::GetAtt:
       - Role
       - Arn
-  ExternalID:
-    Description: Your External ID
-    Value:
-      Ref: Externalid

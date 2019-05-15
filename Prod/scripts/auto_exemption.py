@@ -1,5 +1,6 @@
 # Script to create an exception for a resource programmatically 
-# Sample Slack Event:
+
+# Sample Slack Notification:
 # An insecure storage container was identified with public permissions to the world.
 # Name: `supersecretdatabucket123`
 # The details of this resource are:
@@ -35,34 +36,65 @@
 # ```{{resource.serialize(indent=2)}}```.
 # The container has been quarantined to prevent data exposure
 
-
 # Insight fires w/ issue and sends to slack
 # Slack message has the divvy ID of the resource and bot in it 
+# Add the params of the resource ID, bot ID, resource group name, and description
 
 import json
 import requests
 import getpass
 
 # Username/password to authenticate against the API
-username = "alex_test"
+username = ""
 password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
-
-if not password:
-    passwd = getpass.getpass('Password:')
-else:
-    passwd = password
 
 # API URLs
 base_url = 'https://sales-demo.divvycloud.com'
 login_url = base_url + '/v2/public/user/login'
 
 # Inputs:
-resource_id = "storagecontainer:1:us-west-1:supersecretdatabucket123:"
-## Do all resources have trailing :s? If so - add error handling / regex
-resource_group_name = "S3_public_exception1"
-resource_group_description = "Exception ID: 1 for s3 exposure"
-# Add check to make sure resource group description is less than 255 characters / 64 for name
-bot_id = "1468"
+resource_id = ""
+resource_group_name = ""
+resource_group_description = ""
+bot_id = ""
+
+## Parameter validation:
+
+
+if not username:
+    username = input("Please add a username: ")
+
+if not password:
+    passwd = getpass.getpass('Password:')
+else:
+    passwd = password
+
+if not resource_id:
+    resource_id = input("Please add a resource ID. (Ex: storagecontainer:1:us-west-1:databucket123:): ")
+
+if not resource_group_name:
+    resource_group_name = input("Please add a resource group name: ")
+
+if not resource_group_description:
+    resource_group_description = input("Please add a resource group description: ")
+
+if not bot_id:
+    bot_id = input("Please input bot ID (Ex: 1458): ")
+
+if not bot_id or not resource_group_name or not resource_group_description or not resource_id or not username:
+    print ("All parameters are required. Please ensure there are no blank params and try again")
+    exit()     
+    
+# Resource IDs have a trailing colon that's easy to leave off
+if not resource_id.endswith(':'):
+    print ("Please ensure that the resource_id has a trailing colon. \nEx: storagecontainer:1:us-west-1:supersecretdatabucket123:")
+    exit()
+if len(resource_group_name) > 64:
+    print ("Max length for the resource group name is 64 characters. Please shorten and try again")
+    exit()
+if len(resource_group_description) > 255:
+    print ("Max length for the resource group description is 255 characters. Please shorten and try again")
+    exit()       
 
 # Shorthand helper function
 def get_auth_token():
@@ -155,7 +187,7 @@ def add_exemption(exemption_list,source):
         "source":source,
         "groups":exemption_list
     }
-    print(data)
+
     # Sample: {"source":"backoffice","groups":[118]}
 
     response = requests.post(
@@ -170,14 +202,18 @@ def add_exemption(exemption_list,source):
 
 #### Do work starting here ####
 
-print ("Creating resource group. Name:" + resource_group_name + "\nDescription:" + resource_group_description)
+print ("Creating resource group. Name: " + resource_group_name + "\nDescription:" + resource_group_description)
 resource_group_response = create_resource_group()
-## Add in error handling here - 
-# Response - {'error_message': 'A resource group with this name already exists. Please try a different name.', 'error_type': 'Exception'}
+
+if 'error_message' in resource_group_response:
+    print("Error creating the resource group. Exiting. Error:")
+    print (resource_group_response['error_message'])
+    exit()
+
 resource_group_full_id = resource_group_response['id']
 resource_group_short_id = resource_group_response['resource_group_id']
 
-print ("Adding resource to new resource group. Resource ID:" + resource_id)
+print ("Adding resource to new resource group. Resource ID: " + resource_id)
 add_resource_to_group(resource_group_full_id)
 
 print("Getting the insight ID that this bot was created from")
@@ -195,7 +231,7 @@ exemption_list = [resource_group_short_id]
 if type(current_exemptions) is list:
     exemption_list = exemption_list + current_exemptions
 
-print("Adding resource group to the exceptions list for insight id:" + source + ":" + insight_number)
+print("Adding resource group to the exceptions list for insight id: " + source + ":" + insight_number)
 add_exemption(exemption_list,source)
 
 print("Exception added")

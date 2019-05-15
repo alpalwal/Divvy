@@ -199,6 +199,89 @@ def add_exemption(exemption_list,source):
 # Sample Response 
 # <none>
 
+# Get list of scheduled events
+def get_scheduled_events(bot_id):
+    full_bot_id = 'divvybot:1:' + bot_id
+    data = {
+        "filters": [
+            {
+            "field_name": "creation_resource_id",
+            "filter_type": "EXACT",
+            "filter_value": full_bot_id
+            }
+        ],
+        "limit": 50,
+        "offset": 0,
+        "order_by": "creation_time DESC"
+        }
+        # Sample: 
+        # {
+        #   "filters": [
+        #     {
+        #       "field_name": "creation_resource_id",
+        #       "filter_type": "EXACT",
+        #       "filter_value": "divvybot:1:1468"
+        #     }
+        #   ],
+        #   "limit": 50,
+        #   "offset": 0,
+        #   "order_by": "creation_time DESC"
+        # }
+
+    response = requests.post(
+        url=base_url + '/v2/prototype/scheduled_events/get',
+        data=json.dumps(data),
+        headers=headers
+        )
+    return response.json()
+# Sample Response 
+# Out:
+# {
+#   "total": 1,
+#   "events": [
+#     {
+#       "provider_id": "supersecretdatabucket123",
+#       "target_resource_id": "storagecontainer:1:us-west-1:supersecretdatabucket123:",
+#       "event_type": "divvy.cleanup_storage_container_permissions",
+#       "last_run_status": "SUCCESS",
+#       "event_id": 75309,
+#       "description": "Event Scheduled by bot.",
+#       "next_scheduled_run": null,
+#       "creation_time": "05/15/2019 22:13:19",
+#       "account": "AWS Sales Account",
+#       "schedule": "Once @ 2019-05-15 22:19:19",
+#       "bot_name": "DEMO - S3 Bucket Data Exposure (supersecretbucket123)",
+#       "cloud": "AWS",
+#       "event_state": "INACTIVE",
+#       "scheduled_by": "Alex Corstorphine",
+#       "resource_type": "storagecontainer",
+#       "name": "supersecretdatabucket123"
+#     }
+#   ]
+# }
+
+# Remove the scheduled events (if there are any)
+def remove_scheduled_events(events_to_remove):
+    data = {
+        "action": "delete",
+        "event_ids": events_to_remove
+    }
+    # Sample: 
+    # {
+    #   "action": "delete",
+    #   "event_ids": [
+    #     75309
+    #   ]
+    # }
+
+    response = requests.post(
+        url=base_url + '/v2/prototype/scheduled_events/execute_action',
+        data=json.dumps(data),
+        headers=headers
+        )
+    return response
+# Sample Response 
+# None
 
 #### Do work starting here ####
 
@@ -236,3 +319,20 @@ add_exemption(exemption_list,source)
 
 print("Exception added")
 
+print("Checking for scheduled events to remove on this insight")
+
+# Remove all scheduled events for the resource in question
+scheduled_events = get_scheduled_events(bot_id)
+events_to_remove = []
+for event in scheduled_events['events']:
+    if event['target_resource_id'] == resource_id:
+        events_to_remove.append(event['event_id'])
+
+if len(events_to_remove) > 0:
+    print("Removing scheduled events")
+    remove_scheduled_events(events_to_remove)
+else:
+    print("No scheduled events to remove")
+                
+
+print("Done")

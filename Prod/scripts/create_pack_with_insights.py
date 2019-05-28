@@ -10,14 +10,13 @@ import getpass
 username = ""
 password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
 
-# API URLs
-base_url = "https://sales-demo.divvycloud.com"
-login_url = base_url + '/v2/public/user/login'
+# API URL
+base_url = ""
 
 # PARAMS
-pack_name = "Cost Control and Governance"
-pack_description = "Cost management and governance best practices"
-packaged_insight_ids = [95, 48, 51, 67, 56, 30]
+pack_name = "Best Practices, Cost Control, and Governance"
+pack_description = "Custom checks, cost controls, and overall best practices"
+packaged_insight_ids = [281, 8, 11, 13, 15, 23, 41, 54, 60, 71, 141, 17, 90, 63, 98, 109, 117, 123, 130, 175, 2, 9, 165, 20, 21, 34, 37, 49, 59, 80, 85, 94, 142]
 
 # Param validation
 
@@ -30,7 +29,7 @@ else:
     passwd = password
 
 if not base_url:
-    base_url = input("Base URL (EX: https://sales-demo.divvycloud.com or http://74.34.166.184): ")
+    base_url = input("Base URL (EX: http://localhost:8001 or http://45.59.252.4:8001): ")
 
 if not pack_name:
     pack_name = input("Name for the new pack: ")
@@ -38,6 +37,8 @@ if not pack_name:
 if not pack_description:
     pack_description = input("Description for the new pack: (required) ")
 
+# Full URL
+login_url = base_url + '/v2/public/user/login'
 
 # Custom insight configs
 insight_configs = [
@@ -163,7 +164,7 @@ insight_configs = [
     },
     {
         "name": "Instance or database does not have \"team\" tag key",
-        "description": "## Required key: team\nThe team responsible for the tagged resource (GRO group name).  \nTo find the GRO group name, go to https://my.byu.edu, login, enter grouss in the Quick URL box, (wait a while), you'll then see the names of all the GRO groups you belong to in the left column in the Groups Memberships row.",
+        "description": "## Required key: team\nThe team responsible for the tagged resource (GRO group name).",
         "resource_types": [
             "instance",
             "dbinstance"
@@ -188,7 +189,7 @@ insight_configs = [
     },
     {
         "name": "Instance or database does not have \"env\" tag or approved values",
-        "description": "## Required Key: env \n\n## Approved Values: \n* trn: For training, learning, or experimental efforts \n* dev: For development, learning, or experimental efforts \n* dev-noshutdown: A dev system that shouldn't be automatically shut down \n* tst: Automated testing \n* stg: Staging systems used for QA and User Acceptance Testing\n*stg-noshutdown: A stg system that wont be automatically shut down\n*prd: Production",
+        "description": "## Required Key: env \n\n## Approved Values: \n* trn, dev, dev-noshutdown, tst, stg, stg-noshutdown, prd",
         "resource_types": [
             "instance",
             "dbinstance"
@@ -220,7 +221,7 @@ insight_configs = [
     },
     {
         "name": "Instance or database does not have \"data-sensitivity\" tag or approved values",
-        "description": "## Required Key: data-sensitivity \n\n## Approved values: \n* public \n* internal \n* confidential (default) \n* highly confidential",
+        "description": "## Required Key: data-sensitivity \n\n## Approved values: \n* public \n* internal \n* confidential \n* highly confidential",
         "resource_types": [
             "instance",
             "dbinstance"
@@ -317,6 +318,7 @@ def create_insight(insight_config):
         )
     return response.json()        
 
+
 # Add notes to insight
 def add_insight_notes(insight_id,description):
     data = {
@@ -332,31 +334,25 @@ def add_insight_notes(insight_id,description):
 # No response expected   
 
 
-# # Create the pack
-# print("Creating a new pack: " + pack_name)
-# pack_info = create_pack()
-# print("Pack created. Name: " + pack_info['name'] + " Pack ID: " + str(pack_info['pack_id']))
+# Create the pack
+print("Creating a new pack: " + pack_name)
+pack_info = create_pack()
+print("Pack created. Name: " + pack_info['name'] + " Pack ID: " + str(pack_info['pack_id']))
 
 print("Creating custom insights and adding them to the new pack")
 # Loop through insight_configs and add a filter for each
 custom_insight_ids = []
-i = 0
-while i < len(insight_configs):
-    print("Creating new insight: " + insight_configs[i]['name'])
-    new_insight_info = create_insight(insight_configs[i])
+
+for insight in insight_configs:
+    print("Creating new insight: " + insight['name'])
+    new_insight_info = create_insight(insight)
     custom_insight_ids.append(new_insight_info['insight_id'])
 
     # Add notes to the insight
-    add_insight_notes(new_insight_info['insight_id'],insight_configs[i]['description'])
+    add_insight_notes(new_insight_info['insight_id'],insight['description'])  
 
-    i += 1    
+# Add all insights to the pack
+print("Adding insights to the pack")
+pack_update_output = add_insight_to_pack(pack_info, custom_insight_ids)
 
-
-# # Add all insights to the pack
-# print("Adding insights to the pack")
-# pack_update_output = add_insight_to_pack(pack_info, custom_insight_ids)
-
-# print("Finished creating pack: " + pack_name)
-
-
-    
+print("Finished creating pack: " + pack_name)

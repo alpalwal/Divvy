@@ -1,6 +1,4 @@
-# Script to create a "best practices pack" and add insights to it
-# Update packaged_insight_ids with the IDs of existing insights. 
-# Add new filters to the insight_configs array
+# Script to list all organizations in DivvyCloudf
 
 import json
 import requests
@@ -8,13 +6,12 @@ import getpass
 
 # Username/password to authenticate against the API
 username = ""
-password = ""# Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
 
 # API URL
 base_url = ""
 
 # Param validation
-
 if not username:
     username = input("Username: ")
 

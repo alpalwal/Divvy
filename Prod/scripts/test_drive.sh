@@ -52,7 +52,30 @@ cd /divvycloud
 echo -e "${CYAN}[DOWNLOADING DEFAULT CONFIG FILES]${NC}"
 sudo curl -sO https://s3.amazonaws.com/get.divvycloud.com/compose/prod.env
 
-sudo curl -s https://s3.amazonaws.com/get.divvycloud.com/compose/docker-compose.db-local.yml -o docker-compose.yml
+if [ "$DIVVY_ENV" == "prod" ];
+then
+    curl -sO https://s3.amazonaws.com/get.divvycloud.com/compose/docker-compose.yml
+else
+    curl -s https://s3.amazonaws.com/get.divvycloud.com/compose/docker-compose.db-local.yml -o docker-compose.yml
+
+    # Check for enough disk space to run the test-drive install. It's a hassle to fix the install if we run out of space and want to make sure that they're warned about it. 
+    # Currently just checking for Ubuntu and Amazon Linux
+    if [ ! -f /etc/redhat-release ] ; then
+        disk_space=`df /  --output=avail | grep -v Avail | sed s/G//g`
+        if [ "$disk_space" -lt "17000000" ]; then
+            while true; do
+                read -p "The DivvyCloud test drive installation should have at least 20gb of disk space to run without issue. This instance has less than that. Would you like to continue?" yn
+                case $yn in
+                    [Yy]* ) make install; break;;
+                    [Nn]* ) exit;;
+                    * ) echo "Please answer yes or no.";;
+                esac
+            done
+        fi
+    fi
+
+fi
+
 sudo chown -R $USER:$GROUP /divvycloud
 echo -e "${CYAN}[ADDING USER TO DOCKER GROUP]${NC}"
 sudo usermod -aG docker $USER
@@ -79,7 +102,7 @@ echo -e "${CYAN}[Adding DivvyCloud to crontab for auto-start on boot]${NC}"
 #write out current crontab
 crontab -l > mycron
 #echo new cron into cron file
-echo "@reboot /usr/bin/docker-compose -f /divvycloud/docker-compose.yml up -d" >> mycron
+echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d" >> mycron
 #install new cron file
 crontab mycron
 #Cleanup

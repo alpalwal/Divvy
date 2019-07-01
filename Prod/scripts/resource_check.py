@@ -1,4 +1,5 @@
-# 
+# Check if a resource has showed up in DivvyCloud. If it has, check to see if there are any compliance violations on it. 
+# Currently this looks for any insights but filtering in check_for_violations() can pull out specific insights if needed
 
 import json
 import requests

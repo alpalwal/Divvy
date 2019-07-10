@@ -1,0 +1,8 @@
+{
+  "initial_modules": [
+    "plugin.py",
+    "events.py",
+    "actions.py",
+    "filters.py"
+  ]
+}

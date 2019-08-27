@@ -20,7 +20,8 @@ Example of how to create a data collection via API. This creates a collection of
 Creates a custom best practices pack with pre-canned insights and some custom ones too  
   
 ## find_billable_resources.py  
-  
+Script to find all resources in an AWS account that DivvyCloud bills for. Currently runs off of the default AWS profile. 
+
 ## full_pack_create_bots.py  
 Creates a bot for every insight in a pack and sets each bot up for slack notifications  
   

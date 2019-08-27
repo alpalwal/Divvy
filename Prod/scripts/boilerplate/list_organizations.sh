@@ -2,7 +2,7 @@
 username=""
 password="" 
 
-# DivvyCloud URLEX: http://localhost:8001 or http://45.59.252.4:8001)
+# DivvyCloud URL EX: http://localhost:8001 or http://45.59.252.4:8001)
 base_url=""
 
 # Get session token

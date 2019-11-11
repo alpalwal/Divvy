@@ -55,20 +55,17 @@ echo -e "${CYAN}[CREATING APP DIRECTORY /divvycloud]${NC}"
 sudo mkdir /divvycloud
 cd /divvycloud
 
-sudo curl -s http://get.divvycloud.com/apache/httpd-ssl.conf
-sudo curl -s http://get.divvycloud.com/apache/httpd.conf
-sudo curl -s http://get.divvycloud.com/apache/server.key
-sudo curl -s http://get.divvycloud.com/apache/server.crt
-sudo curl -s http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
-
-my_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
-sudo sed -i "s/localhost/$my_ip/g" httpd.conf 
-
-
 echo -e "${CYAN}[DOWNLOADING DEFAULT CONFIG FILES]${NC}"
 sudo curl -sO https://s3.amazonaws.com/get.divvycloud.com/compose/prod.env
 
-sudo curl -s https://s3.amazonaws.com/get.divvycloud.com/compose/docker-compose.db-local.yml -o /divvycloud/docker-compose.yml
+sudo curl -o /divvycloud/httpd-ssl.conf http://get.divvycloud.com/apache/httpd-ssl.conf
+sudo curl -o /divvycloud/httpd.conf http://get.divvycloud.com/apache/httpd.conf
+sudo curl -o /divvycloud/server.key http://get.divvycloud.com/apache/server.key
+sudo curl -o /divvycloud/server.crt http://get.divvycloud.com/apache/server.crt
+sudo curl -o /divvycloud/docker-compose.apache.db-local.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
+
+my_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
+sudo sed -i "s/localhost/$my_ip/g" httpd.conf 
 
 sudo chown -R $USER:$GROUP /divvycloud
 echo -e "${CYAN}[ADDING USER TO DOCKER GROUP]${NC}"
@@ -77,13 +74,13 @@ echo -e "${CYAN}[DOWNLOADING LATEST DIVVYCLOUD CONTAINERS]${NC}"
 
 # If RedHat/CentOS/AWS
 if [ -f /etc/system-release ]; then
-    sudo /usr/bin/docker-compose -f -f /divvycloud/docker-compose.apache.db-local.yml pull
+    sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml pull
     echo -e "${CYAN}[STARTING DIVVYCLOUD]${NC}"
     sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d    
 else # Ubuntu
     sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml pull
     echo -e "${CYAN}[STARTING DIVVYCLOUD]${NC}"
-    sudo /usr/local/bin/docker-compose -f docker-compose.apache.db-local.yml up -d
+    sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d
 fi
 
 sudo /usr/bin/docker ps
@@ -96,7 +93,7 @@ echo -e "${CYAN}[Adding DivvyCloud to crontab for auto-start on boot]${NC}"
 #write out current crontab
 crontab -l > mycron
 #echo new cron into cron file
-echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d" >> mycron
+echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d" >> mycron
 #install new cron file
 crontab mycron
 #Cleanup

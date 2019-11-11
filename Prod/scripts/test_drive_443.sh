@@ -55,11 +55,11 @@ echo -e "${CYAN}[CREATING APP DIRECTORY /divvycloud]${NC}"
 sudo mkdir /divvycloud
 cd /divvycloud
 
-sudo wget http://get.divvycloud.com/apache/httpd-ssl.conf
-sudo wget http://get.divvycloud.com/apache/httpd.conf
-sudo wget http://get.divvycloud.com/apache/server.key
-sudo wget http://get.divvycloud.com/apache/server.crt
-sudo wget http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
+sudo curl -s http://get.divvycloud.com/apache/httpd-ssl.conf
+sudo curl -s http://get.divvycloud.com/apache/httpd.conf
+sudo curl -s http://get.divvycloud.com/apache/server.key
+sudo curl -s http://get.divvycloud.com/apache/server.crt
+sudo curl -s http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
 
 my_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
 sudo sed -i "s/localhost/$my_ip/g" httpd.conf 

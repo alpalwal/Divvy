@@ -64,8 +64,18 @@ sudo curl -o /divvycloud/server.key http://get.divvycloud.com/apache/server.key
 sudo curl -o /divvycloud/server.crt http://get.divvycloud.com/apache/server.crt
 sudo curl -o /divvycloud/docker-compose.apache.db-local.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
 
-my_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
-sudo sed -i "s/localhost/$my_ip/g" httpd.conf 
+public_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
+private_ip=`curl --silent http://169.254.169.254/latest/meta-data/local-ipv4`
+
+if echo $public_ip | grep -q xml; then
+    echo "Public IP not found. Setting IP config to local IP."
+    instance_ip=`echo $private_ip`
+else
+    echo "Public IP found. Setting IP config public IP."
+    instance_ip=`echo $public_ip`
+fi
+
+sudo sed -i "s/localhost/$instance_ip/g" httpd.conf 
 
 sudo chown -R $USER:$GROUP /divvycloud
 echo -e "${CYAN}[ADDING USER TO DOCKER GROUP]${NC}"

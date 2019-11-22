@@ -6,7 +6,7 @@ from collections import defaultdict
 
 # Username/password to authenticate against the API
 username = "alexc"
-password = "9srZMS%0PxlY"
+password = ""
 
 # API URLs
 base_url = 'https://sales-demo.divvycloud.com'

@@ -45,8 +45,8 @@ insight_configs = []
 
 # Instances running in unapproved regions
 insight_configs.append({
-    "name": "Instances running in unapproved regions",
-    "description": "Instances running outside of:\n* us-east-1\n* us-west-2",
+    "name": "Resources running in unapproved regions (outside of USA)",
+    "description": "Resources running outside of US AWS Regions",
     "resource_types": [
         "instance",
         "sharedfilesystem",
@@ -105,6 +105,8 @@ insight_configs.append({
         "config": {
             "regions_list": [
             "us-east-1",
+            "us-east-2",
+            "us-west-1",
             "us-west-2"
             ]
         }

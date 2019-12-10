@@ -457,7 +457,7 @@ insight_configs.append({
           "G3",
           "F1"
         ],
-        "wildcard_search": true
+        "wildcard_search": True
       },
       "collections": {}
     }

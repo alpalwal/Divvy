@@ -2,6 +2,13 @@
 # Update packaged_insight_ids with the IDs of existing insights. 
 # Add new filters to the insight_configs array
 
+# How to run:
+# This can be ran from any system that has access to the DivvyCloud instance (including the one that's running Divvy)
+# sudo pip3 install requests
+# curl -o create_best_practices_pack.py https://raw.githubusercontent.com/alpalwal/Divvy/master/Prod/scripts/create_poc_best_practices_pack.py
+# python3 create_best_practices_pack.py
+
+
 import json
 import requests
 import getpass
@@ -505,7 +512,6 @@ insight_configs.append({
 # insight_configs.append()
 
 
-
 # Shorthand helper function
 def get_auth_token():
     response = requests.post(
@@ -524,7 +530,6 @@ headers = {
     'Accept': 'application/json',
     'X-Auth-Token': auth_token
 }
-
 
 # Create a new pack
 def create_pack():

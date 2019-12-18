@@ -1,3 +1,5 @@
+# Build list of all insights / actions / bots
+
 import csv
 import io
 import json
@@ -5,11 +7,11 @@ import requests
 from collections import defaultdict
 
 # Username/password to authenticate against the API
-username = "alexc"
+username = ""
 password = ""
 
 # API URLs
-base_url = 'https://sales-demo.divvycloud.com'
+base_url = ''
 login_url = base_url + '/v2/public/user/login'
 
 # Filenames

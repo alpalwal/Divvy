@@ -1,0 +1,188 @@
+# Script to list all pre-canned insights by cloud. 
+# Sample output:
+# ================================================================
+# ===========================AWS==================================
+# ================================================================
+# Cloud Account Without Global API Accounting Config
+# Instance Has Ephemeral Public IP
+# Database Instance Retention Policy Too Low
+# Load Balancer Cross Zone Balancing Disabled
+# Load Balancer Connection Draining Disabled
+
+
+
+
+import json
+import requests
+import getpass
+
+
+## Manually generated list using this:
+# resource_list = []
+
+# for insight in insight_info_array:
+#     if insight['source'] == 'backoffice':
+#         name = insight['name']
+#         supported_resources = insight['resource_types']
+#         clouds_list = insight['supported_clouds']
+#         if clouds_list:
+#             for resource in supported_resources:
+#                 resource_list.append(resource)
+
+# # Remove dupes
+# resource_list = list(dict.fromkeys(resource_list))
+# print(resource_list)
+# print(type(resource_list))
+resources = {
+    "divvyorganizationservice" : [],
+    "instance" : [],
+    "dbinstance" : [],
+    "loadbalancer" : [],
+    "servicecertificate" : [],
+    "storagecontainer" : [],
+    "serviceuser" : [],
+    "privatesubnet" : [],
+    "privatenetwork" : [],
+    "serviceencryptionkey" : [],
+    "bigdatainstance" : [],
+    "volume" : [],
+    "dbsnapshot" : [],
+    "snapshot" : [],
+    "instancereservation" : [],
+    "serviceaccesskey" : [],
+    "apiaccountingconfig" : [],
+    "hypervisor" : [],
+    "networkinterface" : [],
+    "internetgateway" : [],
+    "routetable" : [],
+    "publicip" : [],
+    "resourceaccesslist" : [],
+    "servicegroup" : [],
+    "mcinstance" : [],
+    "esinstance" : [],
+    "serviceregion" : [],
+    "autoscalinggroup" : [],
+    "networkpeer" : [],
+    "sharedfilesystem" : [],
+    "resourceaccesslistrule" : [],
+    "workspace" : [],
+    "distributedtable" : [],
+    "distributedtablecluster" : [],
+    "servicerole" : [],
+    "servicepolicy" : [],
+    "privateimage" : [],
+    "kubernetescluster" : [],
+    "database" : [],
+    "messagequeue" : [],
+    "notificationtopic" : [],
+    "containerinstance" : [],
+    "podsecuritypolicy" : []
+}
+
+
+# Username/password to authenticate against the API
+username = "alexc"
+password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+
+# API URL
+base_url = "https://sales-demo.divvycloud.com"
+
+# Param validation
+if not username:
+    username = input("Username: ")
+
+if not password:
+    passwd = getpass.getpass('Password:')
+else:
+    passwd = password
+
+if not base_url:
+    base_url = input("Base URL (EX: http://localhost:8001 or http://45.59.252.4:8001): ")
+
+# Full URL
+login_url = base_url + '/v2/public/user/login'
+
+# Shorthand helper function
+def get_auth_token():
+    response = requests.post(
+        url=login_url,
+        data=json.dumps({"username": username, "password": passwd}),
+        headers={
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Accept': 'application/json'
+        })
+    return response.json()['session_id']
+
+auth_token = get_auth_token()
+
+headers = {
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Accept': 'application/json',
+    'X-Auth-Token': auth_token
+}
+
+# Get Org info
+def get_insights():
+    data = {}
+
+    response = requests.get(
+        url=base_url + '/v2/public/insights/list',
+        data=json.dumps(data),
+        headers=headers
+        )
+    return response.json()    
+
+# Create the pack
+insight_info_array = get_insights()
+
+#print(insight_info_array)
+
+resource_list = []
+
+for insight in insight_info_array:
+    if insight['source'] == 'backoffice':
+        name = insight['name']
+        supported_resources = insight['resource_types']
+        clouds_list = insight['supported_clouds']
+        if clouds_list:
+            if "AWS" in clouds_list:
+                for resource in supported_resources:
+                    resources[resource].append(name)
+
+
+for resource in resources:
+    if resources[resource]:
+        print("=================")
+        print(resource)
+        print("=================")
+        for insight in resources[resource]:
+            print(insight)
+        print("")
+        print("")
+
+
+            
+#     'name': 'Cloud Account Without Global API Accounting Config',
+#     'supported_clouds': ['AWS_GOV', 'AWS_CHINA', 'AWS'],
+#     'resource_types': ['divvyorganizationservice'],
+#     'insight_id': 2,
+
+#   'favorited': False,
+#   'cache_updated_at': '2019-06-12T23:35:56.907724',
+#   'description': 'Match instances with an ephemeral public IP address',
+#   'resource_group_blacklist': None,
+#   'updated_at': '2019-06-11T09:30:22Z',
+#   'results': 29,
+#   'meta_data': None,
+#   'by_type': {
+#     'instance': 29
+#   'custom_severity': None,
+#   'name': 'Instance Has Ephemeral Public IP',
+#   'supported_clouds': ['GCE', 'AWS_CHINA', 'AZURE_ARM', 'AZURE_GOV', 'AWS_GOV', 'AWS'],
+#   'resource_types': ['instance'],
+#   'severity': 1,
+#   'insight_id': 4,
+#   'inserted_at': '2017-12-07T00:07:15Z',
+#   'notes': '## Overview\n\nCompute instances can have static or dynamic (ephemeral) public IP addresses associated with them. Static addresses will remain intact and persist through lifecycle actions such as stop/start. This can be essential when the resource is used for direct connectivity and does not sit behind a load balancer. Ephemeral addresses will commonly change, and can result in a loss of connectivity to the system if it is routinely stopped/started.\n\nFor some workloads such as web servers this may not represent a true problem. These systems are intended to be ephemeral and in many cases should not have a public IP at all. This Insight can be reconfigured to leverage that tagging policy to identify those mission critical systems which should be updated. It is strongly encouraged to leverage a tagging policy to identify scenarios where this is acceptable. \n\n### Remediation\n\nFor production facing/critical workloads which cannot be taken offline, consider attaching an persistent public iP address. This can be done without taking the machine offline. Be aware that when doing this you may need to update DNS to point to the newly reserved IP address.\n\n\n### Compliance Information\n  - SOC 2: C1.2, C1.3, C1.7, CC5.6, A1.1',
+#   'source': 'backoffice',
+

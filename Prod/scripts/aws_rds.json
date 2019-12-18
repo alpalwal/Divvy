@@ -1,0 +1,399 @@
+{
+    "format_version": "0.1",
+    "terraform_version": "0.12.1",
+    "planned_values": {
+      "root_module": {
+        "resources": [
+          {
+            "address": "aws_db_instance.public",
+            "mode": "managed",
+            "type": "aws_db_instance",
+            "name": "public",
+            "provider_name": "aws",
+            "schema_version": 0,
+            "values": {
+              "allocated_storage": 20,
+              "allow_major_version_upgrade": null,
+              "auto_minor_version_upgrade": true,
+              "copy_tags_to_snapshot": false,
+              "deletion_protection": null,
+              "domain": null,
+              "domain_iam_role_name": null,
+              "enabled_cloudwatch_logs_exports": null,
+              "engine": "postgres",
+              "engine_version": "9.6.8",
+              "final_snapshot_identifier": null,
+              "iam_database_authentication_enabled": null,
+              "identifier": "rds-public",
+              "instance_class": "db.t2.micro",
+              "iops": null,
+              "monitoring_interval": 0,
+              "name": "divvy",
+              "password": "password1234",
+              "performance_insights_enabled": false,
+              "publicly_accessible": false,
+              "replicate_source_db": null,
+              "s3_import": [],
+              "security_group_names": null,
+              "skip_final_snapshot": false,
+              "snapshot_identifier": null,
+              "storage_encrypted": null,
+              "tags": null,
+              "timeouts": null,
+              "username": "myuser"
+            }
+          },
+          {
+            "address": "aws_db_subnet_group.default",
+            "mode": "managed",
+            "type": "aws_db_subnet_group",
+            "name": "default",
+            "provider_name": "aws",
+            "schema_version": 0,
+            "values": {
+              "description": "Our main group of subnets",
+              "name": "main_subnet_group",
+              "subnet_ids": [
+                "subnet-12345aef"
+              ],
+              "tags": null
+            }
+          },
+          {
+            "address": "aws_security_group.default",
+            "mode": "managed",
+            "type": "aws_security_group",
+            "name": "default",
+            "provider_name": "aws",
+            "schema_version": 1,
+            "values": {
+              "description": "Allow all inbound traffic",
+              "egress": [
+                {
+                  "cidr_blocks": [
+                    "0.0.0.0/0"
+                  ],
+                  "description": "",
+                  "from_port": 0,
+                  "ipv6_cidr_blocks": [],
+                  "prefix_list_ids": [],
+                  "protocol": "-1",
+                  "security_groups": [],
+                  "self": false,
+                  "to_port": 0
+                }
+              ],
+              "ingress": [
+                {
+                  "cidr_blocks": [
+                    "0.0.0.0/0"
+                  ],
+                  "description": "",
+                  "from_port": 0,
+                  "ipv6_cidr_blocks": [],
+                  "prefix_list_ids": [],
+                  "protocol": "tcp",
+                  "security_groups": [],
+                  "self": false,
+                  "to_port": 65535
+                }
+              ],
+              "name": "main_rds_sg",
+              "name_prefix": null,
+              "revoke_rules_on_delete": false,
+              "tags": null,
+              "timeouts": null,
+              "vpc_id": "vpc-1234aaef"
+            }
+          }
+        ]
+      }
+    },
+    "resource_changes": [
+      {
+        "address": "aws_db_instance.public",
+        "mode": "managed",
+        "type": "aws_db_instance",
+        "name": "public",
+        "provider_name": "aws",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "allocated_storage": 20,
+            "allow_major_version_upgrade": null,
+            "auto_minor_version_upgrade": true,
+            "copy_tags_to_snapshot": false,
+            "deletion_protection": null,
+            "domain": null,
+            "domain_iam_role_name": null,
+            "enabled_cloudwatch_logs_exports": null,
+            "engine": "postgres",
+            "engine_version": "9.6.8",
+            "final_snapshot_identifier": null,
+            "iam_database_authentication_enabled": null,
+            "identifier": "rds-public",
+            "instance_class": "db.t2.micro",
+            "iops": null,
+            "monitoring_interval": 0,
+            "name": "divvy",
+            "password": "password1234",
+            "performance_insights_enabled": false,
+            "publicly_accessible": false,
+            "replicate_source_db": null,
+            "s3_import": [],
+            "security_group_names": null,
+            "skip_final_snapshot": false,
+            "snapshot_identifier": null,
+            "storage_encrypted": null,
+            "tags": null,
+            "timeouts": null,
+            "username": "myuser"
+          },
+          "after_unknown": {
+            "address": true,
+            "apply_immediately": true,
+            "arn": true,
+            "availability_zone": true,
+            "backup_retention_period": true,
+            "backup_window": true,
+            "ca_cert_identifier": true,
+            "character_set_name": true,
+            "db_subnet_group_name": true,
+            "endpoint": true,
+            "hosted_zone_id": true,
+            "id": true,
+            "identifier_prefix": true,
+            "kms_key_id": true,
+            "license_model": true,
+            "maintenance_window": true,
+            "monitoring_role_arn": true,
+            "multi_az": true,
+            "option_group_name": true,
+            "parameter_group_name": true,
+            "performance_insights_kms_key_id": true,
+            "performance_insights_retention_period": true,
+            "port": true,
+            "replicas": true,
+            "resource_id": true,
+            "s3_import": [],
+            "status": true,
+            "storage_type": true,
+            "timezone": true,
+            "vpc_security_group_ids": true
+          }
+        }
+      },
+      {
+        "address": "aws_db_subnet_group.default",
+        "mode": "managed",
+        "type": "aws_db_subnet_group",
+        "name": "default",
+        "provider_name": "aws",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "description": "Our main group of subnets",
+            "name": "main_subnet_group",
+            "subnet_ids": [
+              "subnet-12345aef"
+            ],
+            "tags": null
+          },
+          "after_unknown": {
+            "arn": true,
+            "id": true,
+            "name_prefix": true,
+            "subnet_ids": [
+              false
+            ]
+          }
+        }
+      },
+      {
+        "address": "aws_security_group.default",
+        "mode": "managed",
+        "type": "aws_security_group",
+        "name": "default",
+        "provider_name": "aws",
+        "change": {
+          "actions": [
+            "create"
+          ],
+          "before": null,
+          "after": {
+            "description": "Allow all inbound traffic",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 65535
+              }
+            ],
+            "name": "main_rds_sg",
+            "name_prefix": null,
+            "revoke_rules_on_delete": false,
+            "tags": null,
+            "timeouts": null,
+            "vpc_id": "vpc-1234aaef"
+          },
+          "after_unknown": {
+            "arn": true,
+            "egress": [
+              {
+                "cidr_blocks": [
+                  false
+                ],
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "security_groups": []
+              }
+            ],
+            "id": true,
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  false
+                ],
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "security_groups": []
+              }
+            ],
+            "owner_id": true
+          }
+        }
+      }
+    ],
+    "configuration": {
+      "provider_config": {
+        "aws": {
+          "name": "aws",
+          "expressions": {
+            "region": {
+              "constant_value": "us-east-2"
+            }
+          }
+        }
+      },
+      "root_module": {
+        "resources": [
+          {
+            "address": "aws_db_instance.public",
+            "mode": "managed",
+            "type": "aws_db_instance",
+            "name": "public",
+            "provider_config_key": "aws",
+            "expressions": {
+              "allocated_storage": {
+                "constant_value": "20"
+              },
+              "db_subnet_group_name": {
+                "references": [
+                  "aws_db_subnet_group.default"
+                ]
+              },
+              "engine": {
+                "constant_value": "postgres"
+              },
+              "engine_version": {
+                "constant_value": "9.6.8"
+              },
+              "identifier": {
+                "constant_value": "rds-public"
+              },
+              "instance_class": {
+                "constant_value": "db.t2.micro"
+              },
+              "name": {
+                "constant_value": "divvy"
+              },
+              "password": {
+                "constant_value": "password1234"
+              },
+              "username": {
+                "constant_value": "myuser"
+              },
+              "vpc_security_group_ids": {
+                "references": [
+                  "aws_security_group.default"
+                ]
+              }
+            },
+            "schema_version": 0,
+            "depends_on": [
+              "aws_security_group.default"
+            ]
+          },
+          {
+            "address": "aws_db_subnet_group.default",
+            "mode": "managed",
+            "type": "aws_db_subnet_group",
+            "name": "default",
+            "provider_config_key": "aws",
+            "expressions": {
+              "description": {
+                "constant_value": "Our main group of subnets"
+              },
+              "name": {
+                "constant_value": "main_subnet_group"
+              },
+              "subnet_ids": {
+                "constant_value": [
+                  "subnet-12345aef"
+                ]
+              }
+            },
+            "schema_version": 0
+          },
+          {
+            "address": "aws_security_group.default",
+            "mode": "managed",
+            "type": "aws_security_group",
+            "name": "default",
+            "provider_config_key": "aws",
+            "expressions": {
+              "description": {
+                "constant_value": "Allow all inbound traffic"
+              },
+              "name": {
+                "constant_value": "main_rds_sg"
+              },
+              "vpc_id": {
+                "constant_value": "vpc-1234aaef"
+              }
+            },
+            "schema_version": 1
+          }
+        ]
+      }
+    }
+  }

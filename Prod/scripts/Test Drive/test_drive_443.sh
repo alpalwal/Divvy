@@ -13,21 +13,26 @@ then
     echo -e "${CYAN}[DOCKER ALREADY INSTALLED: ${NC}$docker_version${CYAN}]"
 else
     echo -e "${CYAN}[DOCKER NOT FOUND, DOWNLOADING AND INSTALLING]${NC}"
-    if grep -q "CentOS" /etc/system-release; then # RedHat/CentOS
-        sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        sudo yum install -y docker-ce docker-ce-cli containerd.io
-        sudo service docker start
-    elif grep -q "Red Hat" /etc/system-release; then # RHEL
-        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        sudo yum install -y --setopt=obsoletes=0 docker-ce-17.03.2.ce-1.el7.centos.x86_64 docker-ce-selinux-17.03.2.ce-1.el7.centos.noarch
-        sudo service docker start  
-    elif grep -q "Amazon" /etc/system-release; then # AWS Linux
-        sudo yum update -y
-        sudo amazon-linux-extras install docker -y
-        sudo service docker start              
-    else # Ubuntu
+
+    if [ -f "/etc/lsb-release" ]; then # Ubuntu
         curl -sSL https://get.docker.com/ | sudo sh
+    elif [ -f "/etc/system-release" ]; then # Linux
+        if grep -q "CentOS" /etc/system-release; then # CentOS
+            sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+            sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            sudo yum install -y docker-ce docker-ce-cli containerd.io
+            sudo service docker start
+        elif grep -q "Red Hat" /etc/system-release; then # RHEL
+            sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            sudo yum install -y --setopt=obsoletes=0 docker-ce-17.03.2.ce-1.el7.centos.x86_64 docker-ce-selinux-17.03.2.ce-1.el7.centos.noarch
+            sudo service docker start  
+        elif grep -q "Amazon" /etc/system-release; then # AWS Linux
+            sudo yum update -y
+            sudo amazon-linux-extras install docker -y
+            sudo service docker start              
+        fi
+    else # Misc / Macbook
+        echo "Uknown operating system. Supported OSes are Ubuntu, RHEL, CentOS, and AWS Linux. Exiting" ; exit
     fi
     echo -e "${CYAN}[DOCKER INSTALL COMPLETE]${NC}"
 fi
@@ -64,18 +69,14 @@ sudo curl -o /divvycloud/server.key http://get.divvycloud.com/apache/server.key
 sudo curl -o /divvycloud/server.crt http://get.divvycloud.com/apache/server.crt
 sudo curl -o /divvycloud/docker-compose.apache.db-local.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
 
-public_ip=`curl --silent http://169.254.169.254/latest/meta-data/public-ipv4`
-private_ip=`curl --silent http://169.254.169.254/latest/meta-data/local-ipv4`
 
-if echo $public_ip | grep -q xml; then
-    echo "Public IP not found. Setting IP config to local IP."
-    instance_ip=`echo $private_ip`
+ip=`curl --silent http://icanhazip.com`
+
+if [ -z "$ip" ] || [ ${#ip} -ge 15 ]; then 
+    echo "Getting public IP via \`curl http://icanhazip.com\` failed. Leaving IP as \"localhost\""
 else
-    echo "Public IP found. Setting IP config public IP."
-    instance_ip=`echo $public_ip`
+    sudo sed -i "s/localhost/$instance_ip/g" httpd.conf 
 fi
-
-sudo sed -i "s/localhost/$instance_ip/g" httpd.conf 
 
 sudo chown -R $USER:$GROUP /divvycloud
 echo -e "${CYAN}[ADDING USER TO DOCKER GROUP]${NC}"

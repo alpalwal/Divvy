@@ -5,7 +5,7 @@
 # How to run:
 # This can be ran from any system that has access to the DivvyCloud instance (including the one that's running Divvy)
 # sudo pip3 install requests
-# curl -o create_best_practices_pack.py https://github.com/alpalwal/Divvy/blob/master/Prod/scripts/Create%20Pack/create_poc_cost_optimization_pack.py
+# curl -o create_best_practices_pack.py https://raw.githubusercontent.com/alpalwal/Divvy/master/Prod/scripts/Create%20Pack/create_poc_cost_optimization_pack.py
 # python3 create_best_practices_pack.py
 
 
@@ -347,7 +347,7 @@ def add_insight_to_pack(pack_info, custom_insight_ids):
         "badge_filter_operator": None,
         "description": pack_info['description'], 
         "logo_url": None, 
-        "backoffice": None, 
+        "backoffice": [], 
         "custom": custom_insight_ids,
         "badges": None
     }

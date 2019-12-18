@@ -5,7 +5,7 @@
 # How to run:
 # This can be ran from any system that has access to the DivvyCloud instance (including the one that's running Divvy)
 # sudo pip3 install requests
-# curl -o create_best_practices_pack.py https://raw.githubusercontent.com/alpalwal/Divvy/master/Prod/scripts/create_poc_best_practices_pack.py
+# curl -o create_best_practices_pack.py https://raw.githubusercontent.com/alpalwal/Divvy/master/Prod/scripts/Create%20Pack/create_poc_best_practices_pack.py
 # python3 create_best_practices_pack.py
 
 

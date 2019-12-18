@@ -68,7 +68,11 @@ password = "" # Leave this blank if you don't want it in plaintext and it'll pro
 divvy_user = ""
 
 # API URL
+<<<<<<< HEAD
 base_url = ""
+=======
+base_url = "https://sales-demo.divvycloud.com"
+>>>>>>> f7bf42ceb3ca912c789f6aee1f1481e3dcf2b5eb
 
 # Param validation
 if not username:

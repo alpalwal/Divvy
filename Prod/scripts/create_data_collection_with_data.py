@@ -11,8 +11,13 @@ import getpass
 ######################
 
 # Username/password to authenticate against the API
+<<<<<<< HEAD
 username = ""
 password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+=======
+username = "alexc"
+password = "9srZMS%0PxlY" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+>>>>>>> f7bf42ceb3ca912c789f6aee1f1481e3dcf2b5eb
 
 # API URL
 base_url = "https://sales-demo.divvycloud.com"

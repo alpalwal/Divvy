@@ -16,7 +16,11 @@ username = ""
 password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
 
 # API URL
+<<<<<<< HEAD
 base_url = ""
+=======
+base_url = "https://sales-demo.divvycloud.com"
+>>>>>>> f7bf42ceb3ca912c789f6aee1f1481e3dcf2b5eb
 
 # Param validation
 if not username:

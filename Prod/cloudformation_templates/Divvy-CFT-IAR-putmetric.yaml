@@ -1,0 +1,118 @@
+#CFT for creating an instance role to be used with your DivvyCloud instances. This is for the local account (not an
+#external account that is being assumed into)
+#https://docs.divvycloud.com/docs/instance-assume-role-aws
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates an instance role to allow the DivvyCloud instance to collect data about this account and assume roles into other accounts for data collection.
+Parameters:
+  TypeOfUser:
+    Type: String
+    Default: Standard User
+    AllowedValues:
+      - Standard User
+      - Power User
+    Description: Type of permissions to give (Standard for readonly, Power for read/write)
+  AddPutMetricPermission:
+    Type: String
+    Default: true
+    AllowedValues: [true, false]
+    Description: Add the cloudwatch:PutMetricData permission (for backlog metric export)?
+
+Conditions:
+  AddStandardUser: !Equals [ !Ref TypeOfUser, "Standard User" ]
+  AddPowerUser: !Equals [ !Ref TypeOfUser, "Power User" ]
+  AddPutMetric: !Equals [true, !Ref AddPutMetricPermission]
+
+Resources:
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref Role
+      InstanceProfileName: DivvyCloudInstanceProfile
+
+  PolicyPowerUser:
+    Type: AWS::IAM::Policy
+    Condition: AddPowerUser
+    Properties:
+      PolicyName: DivvyCloud-PowerUser-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://get.divvycloud.com/policies/PowerUserPolicy.json
+
+  PolicyPutMetricData:
+    Type: AWS::IAM::Policy
+    Condition: AddPutMetric
+    Properties:
+      PolicyName: DivvyCloud-PutMetricData
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: cloudwatch:PutMetricData
+          Resource: '*'
+
+  PolicyReadOnly1:
+    Type: AWS::IAM::Policy
+    Condition: AddStandardUser
+    Properties:
+      PolicyName: DivvyCloud-StandardUser-Policy1
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy1.json
+
+  PolicyReadOnly2:
+    Type: AWS::IAM::Policy
+    Condition: AddStandardUser
+    Properties:
+      PolicyName: DivvyCloud-StandardUser-Policy2
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://get.divvycloud.com/policies/ReadOnlyPolicy2.json
+
+  PolicySTS:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: DivvyCloud-STS-Policy
+      Roles:
+      - Ref: Role
+      PolicyDocument:
+        'Fn::Transform':
+          Name: 'AWS::Include'
+          Parameters:
+            Location: s3://get.divvycloud.com/policies/STSPolicy.json
+
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: "/"
+
+Outputs:
+  RoleARNID:
+    Description: Your Role ARN ID
+    Value:
+      Fn::GetAtt:
+      - Role
+      - Arn

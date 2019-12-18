@@ -67,7 +67,7 @@ sudo curl -o /divvycloud/httpd-ssl.conf http://get.divvycloud.com/apache/httpd-s
 sudo curl -o /divvycloud/httpd.conf http://get.divvycloud.com/apache/httpd.conf
 sudo curl -o /divvycloud/server.key http://get.divvycloud.com/apache/server.key
 sudo curl -o /divvycloud/server.crt http://get.divvycloud.com/apache/server.crt
-sudo curl -o /divvycloud/docker-compose.apache.db-local.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
+sudo curl -o /divvycloud/docker-compose.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
 
 
 ip=`curl --silent http://icanhazip.com`
@@ -85,13 +85,13 @@ echo -e "${CYAN}[DOWNLOADING LATEST DIVVYCLOUD CONTAINERS]${NC}"
 
 # If RedHat/CentOS/AWS
 if [ -f /etc/system-release ]; then
-    sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml pull
+    sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.yml pull
     echo -e "${CYAN}[STARTING DIVVYCLOUD]${NC}"
-    sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d    
+    sudo /usr/bin/docker-compose -f /divvycloud/docker-compose.yml up -d    
 else # Ubuntu
-    sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml pull
+    sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml pull
     echo -e "${CYAN}[STARTING DIVVYCLOUD]${NC}"
-    sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d
+    sudo /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d
 fi
 
 sudo /usr/bin/docker ps
@@ -104,7 +104,7 @@ echo -e "${CYAN}[Adding DivvyCloud to crontab for auto-start on boot]${NC}"
 #write out current crontab
 crontab -l > mycron
 #echo new cron into cron file
-echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.apache.db-local.yml up -d" >> mycron
+echo "@reboot /usr/local/bin/docker-compose -f /divvycloud/docker-compose.yml up -d" >> mycron
 #install new cron file
 crontab mycron
 #Cleanup

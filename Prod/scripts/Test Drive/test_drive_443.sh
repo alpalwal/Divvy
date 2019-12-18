@@ -69,7 +69,6 @@ sudo curl -o /divvycloud/server.key http://get.divvycloud.com/apache/server.key
 sudo curl -o /divvycloud/server.crt http://get.divvycloud.com/apache/server.crt
 sudo curl -o /divvycloud/docker-compose.yml http://get.divvycloud.com/compose/docker-compose.apache.db-local.yml
 
-
 ip=`curl --silent http://icanhazip.com`
 
 if [ -z "$ip" ] || [ ${#ip} -ge 15 ]; then 

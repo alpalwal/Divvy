@@ -7,12 +7,17 @@
 # Moved standard instance type for workers to m5.large
 # Changed the name of LaunchConfigurationDivvy to LaunchConfigurationInterfaceServer
 # Created 2 cloudwatch alarms to tee off of the Divvy Standard backlog (high and low alarms)
-# Set up workers autoscaling to tee off of the 2 alarms for scale up and down
+  # Set up workers autoscaling to tee off of the 2 alarms for scale up and down
 # Removed the explicit ASG names so that rolling updates happen with the ASGs
   # Instead of WorkersASG, it'll look like: DivvyCloudWorkers-AutoScalingGroupInterfaceServer-1IUVXXY3ELW8Q
   # Now when you update a template with a new version, the new ASGs will automatically be deployed
 # Created 2 cloudwatch alarms for interfaceserver CPU utilization
-# Added auto-scaling for interfaceserver based on CPU utilizaion
+  # Added auto-scaling up/down for interfaceserver based on CPU utilizaion
+# Added mapping to rightsize worker counts and removed the parameter option. 1gb/ram = 1 worker process
+  # Deleted worker input parameter
+# Renamed ParameterInterfaceServerOverrideDesiredCapacity ParameterInterfaceServerDesiredCapacity -- it's not an override. Just a setting that's always set
+# Renamed ParameterInstanceType to ParameterWorkerInstanceType for extra clarity
+
 
 AWSTemplateFormatVersion: '2010-09-09'
 Conditions:
@@ -45,7 +50,7 @@ Description: DivvyCloud base deployment for enterprises. This template deploys w
 Mappings:
   CurrentImage:
     current:
-      image: divvycloud/divvycloud:v19.5.0
+      image: divvycloud/divvycloud:v19.5.2
   Ports:
     https:
       port: '443'
@@ -53,6 +58,19 @@ Mappings:
       port: '8001'
     loadbalancer:
       port: '80'
+  WorkerMap:
+    m5.large:
+      'workers': 8    
+    m5.xlarge:
+      'workers': 16    
+    c4.xlarge:
+      'workers': 7    
+    c4.2xlarge:
+      'workers': 15    
+    c4.xlarge:
+      'workers': 8    
+    c4.2xlarge:
+      'workers': 16    
   RegionMap:
     ap-east-1:
       '64': ami-dc98e2ad
@@ -111,11 +129,10 @@ Metadata:
     - Label:
         default: Scaling Options
       Parameters:
-      - ParameterInstanceType
+      - ParameterWorkerInstanceType
       - ParameterOverrideDesiredCapacity
-      - ParameterWorkers
       - ParameterWebserverInstanceType
-      - ParameterInterfaceServerOverrideDesiredCapacity
+      - ParameterInterfaceServerDesiredCapacity
       - ParameterLoadBalancerPorts
       - ParameterLoadBalancerProtocol
       - ParameterSSLID
@@ -179,7 +196,7 @@ Metadata:
         default: Instance Profile Path
       ParameterInstanceProfileRole:
         default: Instance Profile Role Name
-      ParameterInstanceType:
+      ParameterWorkerInstanceType:
         default: Worker Instance Type
       ParameterKey:
         default: SSH Key Pair
@@ -201,7 +218,7 @@ Metadata:
         default: Overide provided RDS Login credentials
       ParameterOverrideDesiredCapacity:
         default: Workers ASG desired capacity
-      ParameterInterfaceServerOverrideDesiredCapacity:
+      ParameterInterfaceServerDesiredCapacity:
         default: Interface Server ASG desired capacity
       ParameterOverrideEndpoints:
         default: Overide provided RDS and Redis Endpoints
@@ -225,8 +242,6 @@ Metadata:
         default: Instance Subnet 2 (if not using DivvyCloud subnets)
       ParameterWebserverInstanceType:
         default: Webserver/Scheduler Instance Type
-      ParameterWorkers:
-        default: Worker Process Per Instance
 Outputs:
   LoadBalancerDivvy:
     Description: URL for Load Balancer
@@ -282,7 +297,7 @@ Parameters:
       this is NOT the instance profile name)
     Description: Role Name for Instance Profile
     Type: String
-  ParameterInstanceType:
+  ParameterWorkerInstanceType:
     AllowedValues:
     - c4.xlarge
     - c4.2xlarge
@@ -364,7 +379,7 @@ Parameters:
     Default: '2'
     Description: Used for separate Workers ASG
     Type: String
-  ParameterInterfaceServerOverrideDesiredCapacity:
+  ParameterInterfaceServerDesiredCapacity:
     AllowedValues:
     - '1'
     - '2'
@@ -446,17 +461,6 @@ Parameters:
     Default: c5.large
     Description: EC2 HVM instance type (e.g., c4.large, c5.xlarge, etc.).
     Type: String
-  ParameterWorkers:
-    AllowedValues:
-    - '8'
-    - '10'
-    - '12'
-    - '14'
-    - '16'
-    ConstraintDescription: Valid range even numbers between 8 and 16 inclusive.
-    Default: '8'
-    Description: Used for separate Workers ASG
-    Type: String
 Resources:
   AutoScalingGroupInterfaceServer:
     DependsOn:
@@ -465,7 +469,7 @@ Resources:
     - TopicDivvySNS
     Properties:
       DesiredCapacity:
-        Ref: ParameterInterfaceServerOverrideDesiredCapacity
+        Ref: ParameterInterfaceServerDesiredCapacity
       LaunchConfigurationName:
         Ref: LaunchConfigurationInterfaceServer
       LoadBalancerNames:
@@ -1005,7 +1009,7 @@ Resources:
         - '64'
       InstanceMonitoring: 'true'
       InstanceType:
-        Ref: ParameterInstanceType
+        Ref: ParameterWorkerInstanceType
       KeyName:
         Ref: ParameterKey
       SecurityGroups:
@@ -1133,7 +1137,7 @@ Resources:
             - Fn::Join:
               - ''
               - - 'sed -i ''s|scale: 8|scale: '
-                - Ref: ParameterWorkers
+                - !FindInMap [WorkerMap, !Ref "ParameterWorkerInstanceType", workers]
                 - '|g'' /divvycloud/docker-compose.yml'
             - sed -i '3,36d' /divvycloud/docker-compose.yml
             - Fn::Join:

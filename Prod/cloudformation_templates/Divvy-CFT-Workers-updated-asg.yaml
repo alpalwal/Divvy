@@ -57,20 +57,7 @@ Mappings:
     instance:
       port: '8001'
     loadbalancer:
-      port: '80'
-  WorkerMap:
-    m5.large:
-      'workers': 8    
-    m5.xlarge:
-      'workers': 16    
-    c4.xlarge:
-      'workers': 7    
-    c4.2xlarge:
-      'workers': 15    
-    c4.xlarge:
-      'workers': 8    
-    c4.2xlarge:
-      'workers': 16    
+      port: '80' 
   RegionMap:
     ap-east-1:
       '64': ami-dc98e2ad
@@ -118,6 +105,19 @@ Mappings:
       '64': ami-0f42d8c4eb586ccf7
     us-west-2:
       '64': ami-0a7d051a1c4b54f65
+  WorkerMap:
+    m5.large:
+      'workers': 8    
+    m5.xlarge:
+      'workers': 16    
+    c4.xlarge:
+      'workers': 7    
+    c4.2xlarge:
+      'workers': 15    
+    c4.xlarge:
+      'workers': 8    
+    c4.2xlarge:
+      'workers': 16         
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:

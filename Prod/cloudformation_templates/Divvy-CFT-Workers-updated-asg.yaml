@@ -17,7 +17,8 @@
   # Deleted worker input parameter
 # Renamed ParameterInterfaceServerOverrideDesiredCapacity ParameterInterfaceServerDesiredCapacity -- it's not an override. Just a setting that's always set
 # Renamed ParameterInstanceType to ParameterWorkerInstanceType for extra clarity
-
+# Added "mimuminservice" to the ASG  updates so it stays up on upgrade -- AutoScalingRollingUpdate
+# Updated scheduler max count to 2 in the ASG so that there can be 2 during rolling upgrades
 
 AWSTemplateFormatVersion: '2010-09-09'
 Conditions:
@@ -501,8 +502,9 @@ Resources:
             Fn::Sub: ${ParameterNetworkStackName}:SubnetDivvy2of2
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: True
+      AutoScalingRollingUpdate:
+        PauseTime: "PT4M"
+        MinInstancesInService: 1       
   AutoScalingGroupScheduler:
     DependsOn:
     - LaunchConfigurationScheduler
@@ -511,7 +513,7 @@ Resources:
       DesiredCapacity: '1'
       LaunchConfigurationName:
         Ref: LaunchConfigurationScheduler
-      MaxSize: '1'
+      MaxSize: '2'
       MinSize: '1'
       NotificationConfigurations:
       - NotificationTypes:
@@ -533,8 +535,9 @@ Resources:
             Fn::Sub: ${ParameterNetworkStackName}:SubnetDivvy1of2
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: True
+      AutoScalingRollingUpdate:
+        PauseTime: "PT4M"
+        MinInstancesInService: 1
   AutoScalingGroupWorkers:
     DependsOn:
     - LaunchConfigurationWorkers
@@ -571,8 +574,9 @@ Resources:
             Fn::Sub: ${ParameterNetworkStackName}:SubnetDivvy2of2
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
-      AutoScalingReplacingUpdate:
-        WillReplace: True            
+      AutoScalingRollingUpdate:
+        PauseTime: "PT4M"
+        MinInstancesInService: 1        
   DivvyBacklogHigh: 
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
@@ -585,7 +589,7 @@ Resources:
       Statistic: Average
       Period: '1800'
       EvaluationPeriods: '1'
-      Threshold: '8000'
+      Threshold: '10000'
       AlarmActions:
         - !Ref WorkersScaleUpPolicy
       ComparisonOperator: GreaterThanThreshold
@@ -601,7 +605,7 @@ Resources:
       Statistic: Average
       Period: '1800'
       EvaluationPeriods: '1'
-      Threshold: '8000'
+      Threshold: '10000'
       AlarmActions:
         - !Ref WorkersScaleDownPolicy
       ComparisonOperator: LessThanThreshold
@@ -653,7 +657,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupInterfaceServer
-      Cooldown: '600'
+      Cooldown: '1800'
       ScalingAdjustment: '-1'
   InterfaceServerScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -661,7 +665,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupInterfaceServer
-      Cooldown: '600'
+      Cooldown: '1800'
       ScalingAdjustment: '1'      
   LaunchConfigurationInterfaceServer:
     Properties:
@@ -1216,7 +1220,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupWorkers
-      Cooldown: '600'
+      Cooldown: '1800'
       ScalingAdjustment: '-1'
   WorkersScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -1224,7 +1228,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupWorkers
-      Cooldown: '600'
+      Cooldown: '1800'
       ScalingAdjustment: '1'
 
 

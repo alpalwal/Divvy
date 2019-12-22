@@ -503,7 +503,7 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        PauseTime: "PT4M"
+        # PauseTime: "PT4M" ###  Removing until we can make new versions of divvy play nicer with old versions
         MinInstancesInService: 1       
   AutoScalingGroupScheduler:
     DependsOn:
@@ -536,7 +536,7 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        PauseTime: "PT4M"
+        # PauseTime: "PT4M" ###  Removing until we can make new versions of divvy play nicer with old versions
         MinInstancesInService: 1
   AutoScalingGroupWorkers:
     DependsOn:
@@ -575,7 +575,7 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
       AutoScalingRollingUpdate:
-        PauseTime: "PT4M"
+        # PauseTime: "PT4M" ###  Removing until we can make new versions of divvy play nicer with old versions
         MinInstancesInService: 1        
   DivvyBacklogHigh: 
     Type: 'AWS::CloudWatch::Alarm'

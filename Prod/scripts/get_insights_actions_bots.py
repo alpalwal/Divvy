@@ -7,13 +7,11 @@ import requests
 from collections import defaultdict
 
 # Username/password to authenticate against the API
-username = ""
-password = ""
+username = ''
+password = ''
 
 # API URLs
-base_url = 'http://54.183.112.214:8001'
-username = "alexc"
-password = "alexcalexcalexc"
+base_url = ''
 
 login_url = base_url + '/v2/public/user/login'
 

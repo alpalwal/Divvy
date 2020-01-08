@@ -11,12 +11,9 @@ username = ""
 password = ""
 
 # API URLs
-base_url = ''
+base_url = 'http://54.183.112.214:8001'
 username = "alexc"
-password = ""
-
-# API URLs
-base_url = 'https://sales-demo.divvycloud.com'
+password = "alexcalexcalexc"
 
 login_url = base_url + '/v2/public/user/login'
 

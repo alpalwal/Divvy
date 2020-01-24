@@ -51,7 +51,7 @@ Description: DivvyCloud base deployment for enterprises. This template deploys w
 Mappings:
   CurrentImage:
     current:
-      image: divvycloud/divvycloud:v19.5.2
+      image: divvycloud/divvycloud:v19.5.4
   Ports:
     https:
       port: '443'
@@ -587,9 +587,9 @@ Resources:
       MetricName: Job Backlog
       Namespace: DivvyCloud
       Statistic: Average
-      Period: '1800'
+      Period: '3600'
       EvaluationPeriods: '1'
-      Threshold: '10000'
+      Threshold: '20000'
       AlarmActions:
         - !Ref WorkersScaleUpPolicy
       ComparisonOperator: GreaterThanThreshold
@@ -603,9 +603,9 @@ Resources:
       MetricName: Job Backlog
       Namespace: DivvyCloud
       Statistic: Average
-      Period: '1800'
+      Period: '3600'
       EvaluationPeriods: '1'
-      Threshold: '10000'
+      Threshold: '20000'
       AlarmActions:
         - !Ref WorkersScaleDownPolicy
       ComparisonOperator: LessThanThreshold
@@ -657,7 +657,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupInterfaceServer
-      Cooldown: '1800'
+      Cooldown: '3600'
       ScalingAdjustment: '-1'
   InterfaceServerScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -665,7 +665,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupInterfaceServer
-      Cooldown: '1800'
+      Cooldown: '3600'
       ScalingAdjustment: '1'      
   LaunchConfigurationInterfaceServer:
     Properties:
@@ -1220,7 +1220,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupWorkers
-      Cooldown: '1800'
+      Cooldown: '3600'
       ScalingAdjustment: '-1'
   WorkersScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
@@ -1228,7 +1228,7 @@ Resources:
       AdjustmentType: ChangeInCapacity
       AutoScalingGroupName:
         Ref: AutoScalingGroupWorkers
-      Cooldown: '1800'
+      Cooldown: '3600'
       ScalingAdjustment: '1'
 
 

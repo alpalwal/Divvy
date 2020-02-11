@@ -7,18 +7,18 @@ import requests
 from collections import defaultdict
 
 # Username/password to authenticate against the API
-username = ''
-password = ''
+username = 'alexc'
+password = 'alexcalexcalexc1!Q'
 
 # API URLs
-base_url = ''
+base_url = 'http://18.144.27.164:8001'
 
 login_url = base_url + '/v2/public/user/login'
 
 # Filenames
-insights_filename = 'divvy_insights_19_5.csv'
-filters_filename = 'divvy_filters_19_5.csv'
-bots_filename = 'divvy_bots_19_5.csv'
+insights_filename = 'divvy_insights_20_1_0.csv'
+filters_filename = 'divvy_filters_20_1_0.csv'
+bots_filename = 'divvy_bots_20_1_0.csv'
 
 # Endpoints
 packs_url = '/v2/public/insights/packs/list'

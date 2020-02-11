@@ -1,14 +1,23 @@
-# DivvyCloud-OnBoarding-Terraform
-Terraform Templates that Prepare the Role on AWS account to connenct to DivvyCloud 
+// Lines 34, 101, 700, and 994 are of note.
 
-# Steps:
+# - The divvykeys_task is a one-time run to create the divvykeys database (this is temporary and we’re working on a better mechanism). 
+# Once the rest of the services/tasks are working, you can delete the DELETE-ME-AFTER-FIRST-RUN service. 
+# - For scaling the other services, you can use lines 68-88 or scale the services up after deployment. 
+# - Uncomment lines 558-568, comment out lines 572-582 to disable HTTPS in favor of HTTP
 
-## In Terraform:
-1. Choose file according to the protection mode you prefer (Read Only or Full Protect)
-2. Remove or rename the .tf file you won't be using since Terraform will try to run all *.tf files in the directory.
-3. Run 'terraform plan'
-4. If this looks good, run 'terraform apply'
-5. After the process finished, a new role is created which will contain the "Role ARN".
+# - Line 25: Set the account ID that Divvy will be deployed to
+# - Line 31: Set the AZs you want Divvy to run in (at least 2)
+# - Line 61: Set the IP range(s) that you want to be able to access Divvy from
+# - Line 66: Set the region you'll be deploying into
+# - Uncomment lines 562 to 575 to allow ingress on port 80
+# - Comment out lines 577 to 588 to remove the 443 ingress rule that needs a cert
 
+REQUIRES Terraform .12
 
+Why 3 vs 2 AZs?
 
+add flag for "first run" or not?
+
+Services / topology being created:
+
+added lb port variable. if 443, then it'll create the cert. if not 443, it'll create the lb inbound rule on 80

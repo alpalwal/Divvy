@@ -1,12 +1,6 @@
-
-
 # Requires:
-#### Terraform 0.12
-#### Permissions on the IAM user to be able to create policies and roles
-
-
-# Services / resources being created
-
+- Terraform 0.12
+- Permissions on the IAM user to be able to create policies and roles
 
 # Required variable to set or update
 
@@ -51,15 +45,79 @@ alb_ssl_cert_name = "YOUR-ACM-SSL-CERT-ID-HERE"
 - The NAT GW can't be deleted if RDS is still around as it'll have IPs associated  
 
 
-# Cleanup:
- - The divvykeys_task is a one-time run to create the divvykeys database (this is temporary and we’re working on a better mechanism). 
- Once the rest of the services/tasks are working, you can delete the DELETE-ME-AFTER-FIRST-RUN service. 
- - For scaling the other services, you can use lines 68-88 or scale the services up after deployment. 
- - Uncomment lines 558-568, comment out lines 572-582 to disable HTTPS in favor of HTTP
+# Notes
+ - The divvykeys_task is a one-time run to create the divvykeys database (this is temporary and we’re working on a better mechanism). Once the rest of the services/tasks are working, you can delete the DELETE-ME-AFTER-FIRST-RUN service.  
+ - For scaling the other services, you can adjust the task variables up after deployment.  
+ 
 
- - Line 25: Set the account ID that Divvy will be deployed to
- - Line 31: Set the AZs you want Divvy to run in (at least 2)
- - Line 61: Set the IP range(s) that you want to be able to access Divvy from
- - Line 66: Set the region you'll be deploying into
- - Uncomment lines 562 to 575 to allow ingress on port 80
- - Comment out lines 577 to 588 to remove the 443 ingress rule that needs a cert
+ # Resources that will be created:
+#### 3 IAM Roles:
+DivvyCloud-Standard-Role  
+DivvyCloud-RDS-Role   
+DivvyCloud-ECS-Task-Role  
+
+#### 3 IAM Policies:
+DivvyCloud-Standard-Role-Policy    
+DivvyCloud-Standard-Role-Policy2   
+DivvyCloud-getSecret-Policy  
+
+#### 1 VPC:
+DivvyCloud-ECS-VPC  
+
+#### 4 Security Groups:
+DivvyCloud-ECS-SecurityGroup-Redis     
+DivvyCloud-ECS-SecurityGroup-ALB  
+DivvyCloud-ECS-SecurityGroup-RDS  
+DivvyCloud-ECS-SecurityGroup-UI  
+
+#### 1 IGW:
+DivvyCloud-InternetGateway   
+
+#### 6 Subnets:
+DivvyCloud-ECS-Private-Subnet1    
+DivvyCloud-ECS-Private-Subnet2  
+DivvyCloud-ECS-Private-Subnet3  
+DivvyCloud-ECS-Public-Subnet1  
+DivvyCloud-ECS-Public-Subnet2  
+DivvyCloud-ECS-Public-Subnet3  
+
+#### 3 NAT Gateways:
+DivvyCloud-NAT-GW  
+DivvyCloud-NAT-GW2  
+DivvyCloud-NAT-GW3  
+
+#### 3 EIPs for the NAT GWs:
+DivvyCloud-NAT-GW-EIP  
+DivvyCloud-NAT-GW-EIP2  
+DivvyCloud-NAT-GW-EIP3  
+
+#### 4 Route Tables:
+DivvyCloud-ECS-RouteTable-Public   
+DivvyCloud-ECS-RouteTable-Private  
+DivvyCloud-ECS-RouteTable-Private2  
+DivvyCloud-ECS-RouteTable-Private3  
+
+#### 1 RDS Instance:
+DivvyCloud-ECS-MySQL   
+
+#### 1 Secrets Manager Secret:
+divvycloud-credentials   
+
+#### 1 ALB:
+DivvyCloud-ECS-ALB   
+
+#### 1 Elasticache Instance (Redis):
+DivvyCloud-ECS-Redis  
+
+#### 1 ECS Cluster:
+DivvyCloud-ECS-Cluster   
+
+#### 5 ECS Services and Task Definitions:
+interfaceserver   
+scheduler  
+divvykeys  
+worker  
+workerPersistent  
+
+#### 1 CloudWatch Logs Group:
+DivvyCloud-ECS-Cluster-LogGroup   

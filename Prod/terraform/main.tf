@@ -472,6 +472,7 @@ resource "aws_security_group" "DivvyCloud-ECS-SecurityGroup-ALB" {
 // ALB security group ingress rule
 resource "aws_security_group_rule" "DivvyCloud-ECS-SecurityGroup-ALB" {
     cidr_blocks       = var.ingress_whitelist
+    count = var.lb_port == 443 ? 0 : 1
     from_port         = 80
     ipv6_cidr_blocks  = []
     prefix_list_ids   = []
@@ -483,18 +484,19 @@ resource "aws_security_group_rule" "DivvyCloud-ECS-SecurityGroup-ALB" {
 }
 
 
-# // ALB security group ingress rule
-# resource "aws_security_group_rule" "DivvyCloud-ECS-SecurityGroup-ALB2" {
-#     cidr_blocks       = var.ingress_whitelist
-#     from_port         = 443
-#     ipv6_cidr_blocks  = []
-#     prefix_list_ids   = []
-#     protocol          = "tcp"
-#     security_group_id = aws_security_group.DivvyCloud-ECS-SecurityGroup-ALB.id
-#     self              = false
-#     to_port           = 443
-#     type              = "ingress"
-# }
+// ALB security group ingress rule
+resource "aws_security_group_rule" "DivvyCloud-ECS-SecurityGroup-ALB2" {
+    cidr_blocks       = var.ingress_whitelist
+    count = var.lb_port == 443 ? 1 : 0
+    from_port         = 443
+    ipv6_cidr_blocks  = []
+    prefix_list_ids   = []
+    protocol          = "tcp"
+    security_group_id = aws_security_group.DivvyCloud-ECS-SecurityGroup-ALB.id
+    self              = false
+    to_port           = 443
+    type              = "ingress"
+}
 
 // ALB security group egress rule
 resource "aws_security_group_rule" "DivvyCloud-ECS-SecurityGroup-ALB3" {

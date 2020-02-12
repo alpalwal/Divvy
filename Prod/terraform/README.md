@@ -41,7 +41,7 @@ alb_ssl_cert_name = "YOUR-ACM-SSL-CERT-ID-HERE"
 - If there's nothing there, go to the Tasks tab, click on a task (stopped), and expand the details ">" at the bottom. The logs there should help.  
 
 # Teardown
-- RDS has deletion protection on  
+- RDS has deletion protection on and will need to have that manually turned off before destroying. 
 - The NAT GW can't be deleted if RDS is still around as it'll have IPs associated  
 
 

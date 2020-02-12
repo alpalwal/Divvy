@@ -34,7 +34,7 @@ If setting 443 the name of the ACM cert that will be attached needs to be suppli
 alb_ssl_cert_name = "YOUR-ACM-SSL-CERT-ID-HERE"  
 
 
-# Troubleshooting:
+# Troubleshooting
 - Go to the DivvyCloud-ECS cluster  
 - Look to see if the tasks are running  
 - If not, go to the logs for the DELETE-ME task and look for the "Stopped" logs  
@@ -50,7 +50,7 @@ alb_ssl_cert_name = "YOUR-ACM-SSL-CERT-ID-HERE"
  - For scaling the other services, you can adjust the task variables up after deployment.  
  
 
- # Resources that will be created:
+ # Resources that will be created
 #### 3 IAM Roles:
 DivvyCloud-Standard-Role  
 DivvyCloud-RDS-Role   

@@ -30,7 +30,7 @@ variable "database_credentials" {
 variable "divvycloud_version" {
     type = string
     // Example "divvycloud/divvycloud:latest" or "divvycloud/divvycloud:v19.3.2"
-    default = "divvycloud/divvycloud:v20.0.1"
+    default = "divvycloud/divvycloud:v20.1.0"
 }
 
 // Allow outbound access (does not apply to IGW)

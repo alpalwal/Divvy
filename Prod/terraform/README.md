@@ -2,7 +2,7 @@
 - Terraform 0.12
 - Permissions on the IAM user to be able to create policies and roles
 
-# Required variable to set or update
+# Required variables to set or update
 
 #### account_id
 Target account id. Where will DivvyCloud be deployed?  

@@ -30,7 +30,7 @@ variable "database_credentials" {
 variable "divvycloud_version" {
     type = string
     // Example "divvycloud/divvycloud:latest" or "divvycloud/divvycloud:v19.3.2"
-    default = "divvycloud/divvycloud:v20.1.0"
+    default = "divvycloud/divvycloud:v20.1.1"
 }
 
 // Allow outbound access (does not apply to IGW)
@@ -52,8 +52,8 @@ variable "lb_port" {
   default = 80
 }
 
-// If setting 443, edit the alb_ssl_arn variable in the main.tf file with the name of your certificate
-// Existing SSL cert for ALB
+// If setting 443 the name of the ACM cert that will be attached needs to be supplied. If on 80 - leave this alone
+// Note: Just the name, not the full ARN  
 variable "alb_ssl_cert_name" {
   type    = string
   default = "YOUR-ACM-SSL-CERT-ID-HERE"

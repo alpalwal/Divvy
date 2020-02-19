@@ -140,6 +140,13 @@ resource "aws_iam_policy" "DivvyCloud-getSecret-Policy" {
 EOF
 }
 
+// Create STS policy
+resource "aws_iam_policy" "DivvyCloud-STS-policy" {
+  name        = "DivvyCloud-STS-policy"
+  description = "DivvyCloud STS policy"
+
+  policy = file("${path.module}/divvycloud-sts.json")
+}
 
 // Attach DivvyCloud standard policies
 resource "aws_iam_role_policy_attachment" "DivvyCloud-Standard-Role-Attach" {
@@ -155,6 +162,12 @@ resource "aws_iam_role_policy_attachment" "DivvyCloud-Standard-Role-Attach2" {
 resource "aws_iam_role_policy_attachment" "DivvyCloud-Standard-Role-Attach3" {
   role       = aws_iam_role.DivvyCloud-Standard-Role.name
   policy_arn = aws_iam_policy.DivvyCloud-getSecret-Policy.arn
+}
+
+// Attach DivvyCloud STS policy
+resource "aws_iam_role_policy_attachment" "DivvyCloud-STS-Role-Attach" {
+  role       = aws_iam_role.DivvyCloud-Standard-Role.name
+  policy_arn = aws_iam_policy.DivvyCloud-STS-policy.arn
 }
 
 // Attach RDS enhanced monitoring policy

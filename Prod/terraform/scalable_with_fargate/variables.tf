@@ -18,7 +18,7 @@ variable "az" {
 // Set the name of the secrets manager secret
 variable "divvycloud-credentials" {
     type = string
-    default = "divvycloud-credentials"
+    default = "divvycloud-credentials9"
 }
 
 // If you do not want a random RDS/MySQL password automatically generated, specify here

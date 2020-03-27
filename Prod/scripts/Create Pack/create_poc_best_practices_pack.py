@@ -14,11 +14,11 @@ import requests
 import getpass
 
 # Username/password to authenticate against the API
-username = ""
-password = "" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+username = "alexc"
+password = "alexcalexcalexc1!Q" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
 
 # API URL
-base_url = ""
+base_url = "https://54.183.29.131"
 
 # PARAMS
 pack_name = "Best Practices, Cost Control, and Governance"

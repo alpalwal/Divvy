@@ -1,24 +1,38 @@
 # Build list of all insights / actions / bots
-
 import csv
 import io
 import json
 import requests
+import getpass
 from collections import defaultdict
 
 # Username/password to authenticate against the API
-username = 'alexc'
-password = 'alexcalexcalexc1!Q'
+username = ''
+password = ''
+
+version = ''
+
+# Param validation
+if not username:
+    username = input("Username: ")
+
+if not password:
+    passwd = getpass.getpass('Password:')
+else:
+    passwd = password
+
+if not version:
+    version = input("Version with underscores - ex. 20_1_1: ")
 
 # API URLs
-base_url = 'http://18.144.27.164:8001'
+base_url = 'https://sales-demo.divvycloud.com'
 
 login_url = base_url + '/v2/public/user/login'
 
 # Filenames
-insights_filename = 'divvy_insights_20_1_0.csv'
-filters_filename = 'divvy_filters_20_1_0.csv'
-bots_filename = 'divvy_bots_20_1_0.csv'
+insights_filename = 'divvy_insights_' + version + '.csv'
+filters_filename = 'divvy_filters_' + version + '.csv'
+bots_filename = 'divvy_bots_' + version + '.csv'
 
 # Endpoints
 packs_url = '/v2/public/insights/packs/list'

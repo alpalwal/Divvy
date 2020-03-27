@@ -40,7 +40,7 @@ EOF
 // Create PowerUser RO policy pt 1
 resource "aws_iam_policy" "DivvyCloud-PowerUser-Role-Policy" {
   name        = "DivvyCloud-PowerUser-Policy"
-  description = "DivvyCloud PowerUser RO Policy Pt 1"
+  description = "DivvyCloud PowerUser Policy"
 
   policy = file("${path.module}/divvycloud-poweruser.json")
 

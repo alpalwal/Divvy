@@ -4,6 +4,7 @@ az login
 echo "Creating the app registration"
 ID=`az ad app create --display-name DivvyCloud --query appId | sed s/\"//g`
 
+echo "Creating app key(secret)"
 # Create a Secret for the app
 KEY=`az ad app credential reset \
 --id $ID \
@@ -12,7 +13,7 @@ KEY=`az ad app credential reset \
 --end-date 2022-12-31 \
 --query password | sed s/\"//g`
 
-# Add the Graph API "Directory.Read.All" permissions to the app
+echo "Adding the Graph API \"Directory.Read.All\" permissions to the app"
 az ad app permission add \
 --id $ID \
 --api 00000002-0000-0000-c000-000000000000 \
@@ -100,3 +101,6 @@ curl \
 --header "x-auth-token: $session_token" \
 -d '{"creation_params":{"cloud_type":"AZURE_ARM","name": "'$nickname'","authentication_type": "client_credentials","tenant_id": "'$TENANT_ID'","app_id": "'$ID'","subscription_id": "'$SUB_ID'","api_key": "'$KEY'"}}' \
 $add_cloud_url | gunzip | jq
+
+echo ""
+echo "Azure onboarding finished"

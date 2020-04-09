@@ -11,6 +11,12 @@ password = "" # Leave this blank if you don't want it in plaintext and it'll pro
 # API URL
 base_url = ""
 
+#### TESTING 
+username = "alexc"
+password = "q%)P3hX>8JuyoRnjc"
+base_url = "https://sales-demo.divvycloud.com"
+####
+
 # Param validation
 if not username:
     username = input("Username: ")
@@ -51,7 +57,7 @@ headers = {
 def get_exemptions(page):
     data = {}
     response = requests.post(
-        url=base_url + '/v2/public/exemptions/list?page=' + str(page) + '&page_size=50',
+        url=base_url + '/v2/public/exemptions/list?page=' + str(page) + '&page_size=500',
         data=json.dumps(data),
         headers=headers
         )
@@ -63,12 +69,21 @@ exemption_list = []
 exemption_response = get_exemptions(page)
 exemption_list = exemption_list + exemption_response['data']
 
+''' Need to fix pagination. In the meantime, just cheat and bump the page size up higher
 # If there's more pages, get them too
 pages_left = int(exemption_response['total_count'] / 50)
+print("pages left:")
+print(str(pages_left))
+
+print(range(pages_left))
 if pages_left > 0:
-    for page in range(0, pages_left):
+    pages_left += 1 # Add one so the range can start on page 2 instead of page 0
+    for page in range(1,pages_left):
+        page += 1
+        print(page)
         get_exemptions(page)
         exemption_list = exemption_list + exemption_response['data']
+'''
 
 with open(exemptions_file, 'w') as outfile:
     headers = ['exemption_id','resource_type', 'resource_name', 'provider_id', 'insight_id', 'insight_source', 'creator_name', 'owner_name', 'approver', 'create_date', 'start_date', 'expiration_date', 'enabled', 'insight_name']

@@ -53,10 +53,8 @@ done
 
 # gcloud services list --enabled # https://cloud.google.com/sdk/gcloud/reference/services/list
 
-
 # gcloud --project something-staging-2587 compute ssh my_vm
 # #https://stackoverflow.com/questions/46770900/how-to-change-the-project-in-gcp-using-cli-commands
-
 
 # gcloud --project alexsandboxproject services enable maps-backend.googleapis.com 
 # Operation "operations/acf.5eece386-faa2-49aa-af1b-e2c32e15d03b" finished successfully.

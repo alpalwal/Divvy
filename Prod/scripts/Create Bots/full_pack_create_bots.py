@@ -1,9 +1,13 @@
-# Script to create a bot for all insights in a pack
-# Currently set up for slack
+## BOT STATE == paused
+## TRIGGER Bot == disabled
+### Pack_ID needs to be updated
 
+# Script to create a bot for all insights in a pack
 import json
 import requests
 import getpass
+
+requests.packages.urllib3.disable_warnings() # verify=False in the request throws a security error otherwise
 
 # Username/password to authenticate against the API
 username = ""
@@ -19,13 +23,16 @@ base_url = ''
 login_url = base_url + '/v2/public/user/login'
 
 # PARAMS
-pack_name = "Cost Control"
-slack_channel = "#botalerts"
+pack_id = "custom:167"
+pack_split = pack_id.split(":")
+pack_number = int(pack_split[1])
+backoffice_or_custom = pack_split[0]
 
 # Shorthand helper function
 def get_auth_token():
     response = requests.post(
         url=login_url,
+        verify=False,
         data=json.dumps({"username": username, "password": passwd}),
         headers={
             'Content-Type': 'application/json;charset=UTF-8',
@@ -36,6 +43,7 @@ def get_auth_token():
 def get_packs():
     response = requests.get(
         url=base_url + '/v2/public/insights/packs/list',
+        verify=False,
         headers=headers
         )
     return response.json()
@@ -43,27 +51,29 @@ def get_packs():
 def get_insights():
     response = requests.get(
         url=base_url + '/v2/public/insights/list',
+        verify=False,
         headers=headers
         )
     return response.json()    
 
 def make_bot(insight):
-    bot_name = "Slack - " + insight['name']
+    bot_name = insight['name'] + " - ServiceNow"
     bot_message = "Security issue found. Name: *" + insight['name'] + "* Resource Name: *{{resource.name}}*"
-
+ 
     data = {
         "name": bot_name,
-        "description": "Demo",
+        "description": "ServiceNow Integration",
         "severity": "low",
         "category": "Security",
         "ondemand_enabled": True,
-        "state": "RUNNING",
+        "state": "PAUSED",
         "instructions": {
             "resource_types": insight['resource_types'],
             "groups": [],
             "filters": insight['filters'],
             "schedule": None,
             "schedule_description": None,
+            #All cloud accounts
             "badges": [
             {
                 "key": "system.resource_type",
@@ -78,27 +88,19 @@ def make_bot(insight):
             "actions": [
             {
                 "run_when_result_is": True,
-                "config": {},
-                "name": "divvy.action.mark_non_compliant"
-            },
-            {
-                "run_when_result_is": True,
                 "config": {
-                "username": "DivvyCloud",
-                "recipient_badge_keys": [],
-                "recipient_tag_keys": [],
-                "message": bot_message,
-                "channel": slack_channel,
-                "skip_duplicates": False
-                },
-                "name": "slack.action.send_slack_message"
+                "description": bot_name,
+                "urgency": "1",
+                "comments": bot_message
+            },
+                "name": "servicenow.action.create_incident"
             }
             ]
         }
     }
-
     response = requests.post(
         url=base_url + '/v2/public/botfactory/bot/create',
+        verify=False,
         data=json.dumps(data),
         headers=headers
         )
@@ -107,52 +109,62 @@ def make_bot(insight):
 def trigger_bot( bot_id):
     response = requests.post(
         url=base_url + '/v2/public/botfactory/' + bot_id + '/ondemand',
+        verify=False,
         headers=headers
         )
     return response.json()   
     
 auth_token = get_auth_token()
-
+ 
 headers = {
     'Content-Type': 'application/json;charset=UTF-8',
     'Accept': 'application/json',
     'X-Auth-Token': auth_token
 }
-
+ 
 # Get the list of packs to loop through and look for the one that was defined
 pack_response = get_packs()
-
+ 
 # Get the pack ID
-i = 0
-while i < len(pack_response):
-    if pack_response[i]['name'] == pack_name:
-        print ("FOUND PACK")
-        break
-    i += 1    
+found_pack = False
+for pack in pack_response:
+    if pack['pack_id'] == pack_number:
+        if pack['source'] == backoffice_or_custom:
+            found_pack = True
+            print("Found matching pack. Name: " + pack['name'])
+            backoffice_insights = pack['backoffice'] # Normal insights are in the backoffice array        
+            custom_insights = (pack['custom']) # Custom insights are in the custom array. Add them to  backoffice
+            break  
 
-# Normal insights are in the backoffice array
-backoffice = pack_response[i]['backoffice']
-
-# Custom insights are in the custom array. Add them to  backoffice
-backoffice.extend(pack_response[i]['custom'])
+if not found_pack:
+    print("No pack found matching \"" + pack_id + "\". Exiting.")
+    exit()
 
 # Get the info from the insights in the pack
 insights_response = get_insights() 
 
-j = 0
-while j < len(backoffice):
-    # look through the insights for a matching ID
-    # if we find it - create a bot
-    k=0
-    while k < len(insights_response):
-        if insights_response[k]['insight_id'] == backoffice[j]:
-            print("Creating bot")
-            new_bot = make_bot(insights_response[k])
-            print("Made a new bot: " + new_bot['name'])
-            bot_trigger = trigger_bot( new_bot['resource_id'])
-            print("Triggered bot")
-            break
-        else:
-            k += 1
-    j += 1    
-    
+# look through the insights for a matching ID
+# if we find it - create a bot
+print("\n == Creating bots from backoffice insights")
+for backoffice_insight in backoffice_insights:
+    for insight in insights_response:
+        if insight['source'] == "backoffice":
+            if insight['insight_id'] == backoffice_insight:
+                new_bot = make_bot(insight)
+                print("Made a new bot: " + new_bot['name'])
+                
+                # bot_trigger = trigger_bot( new_bot['resource_id'])
+                # print("Triggered bot")
+                break
+
+print("\n == Creating bots from custom insights")
+for custom_insight in custom_insights:
+    for insight in insights_response:
+        if insight['source'] == "custom":
+            if insight['insight_id'] == custom_insight:
+                new_bot = make_bot(insight)
+                print("Made a new bot: " + new_bot['name'])
+                
+                # bot_trigger = trigger_bot( new_bot['resource_id'])
+                # print("Triggered bot")
+                break

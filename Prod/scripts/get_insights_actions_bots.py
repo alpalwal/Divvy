@@ -7,10 +7,10 @@ import getpass
 from collections import defaultdict
 
 # Username/password to authenticate against the API
-username = ''
-password = ''
+username = 'alexc'
+password = 'q%)P3hX>8JuyoRnjc'
 
-version = ''
+version = '20.2'
 
 # Param validation
 if not username:
@@ -122,6 +122,9 @@ with open(filters_filename, 'w') as outfile:
 
         if aws == 'N' and azure == 'N' and gcp == 'N' and alicloud == 'N' and k8s == 'N':
             aws = azure = gcp = alicloud = k8s = 'Y' 
+
+        if row['name'] == 'Instance Without Recent Snapshot (VMware Only)' or row['name'] == 'Instance VMware Tools Status':
+            continue
 
         cells = [row['name'], str(row['supported_resources']), row['description'], aws, azure, gcp, alicloud, k8s]
         writer.writerow(cells)

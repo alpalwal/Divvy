@@ -59,7 +59,8 @@ def get_domain_admins():
     try:
         return response.json()
     except:
-        return response
+        print(response)
+        exit()
 
 def get_users():
     data = {'limit': 500, 'offset': 0, 'order_by': "name", 'filters': []}
@@ -72,7 +73,8 @@ def get_users():
     try:
         return response.json()
     except:
-        return response
+        print(response)
+        exit()
 
 admin_list = get_domain_admins() ## Get list of admins and put them into an array
 normal_user_list = get_users() ## Same thing for normal users

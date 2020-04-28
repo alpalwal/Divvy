@@ -50,7 +50,7 @@ headers = {
 }
 
 def get_domain_admins():
-    data = {}
+    data = {limit: 500, offset: 0, order_by: "name", filters: []}
     response = requests.post(
         url=base_url + '/v2/prototype/domains/admins/list',
         verify=False,
@@ -61,7 +61,7 @@ def get_domain_admins():
 
 
 def get_users():
-    data = {}
+    data = {limit: 500, offset: 0, order_by: "name", filters: []}
     response = requests.post(
         url=base_url + '/v2/public/users/list',
         verify=False,

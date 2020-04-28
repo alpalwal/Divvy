@@ -65,10 +65,10 @@ headers = {
 }
 
 # Get Acct info
-def get_accounts():
+def get_account_list():
     data = {
         "filters": [],
-        "limit": 250,
+        "limit": 500,
         "offset": 0,
         "order_by": "name"
     }
@@ -81,7 +81,7 @@ def get_accounts():
     return response.json()    
 
 # Parse through the info to pretty print the accounts
-account_list = get_accounts()
+account_list = get_account_list()
 
 print("Name | Account_ID | Cloud_Type | Resource_Count | Creation_Time")
 for cloud in account_list['clouds']:

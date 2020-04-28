@@ -14,6 +14,11 @@ password = "" # Leave this blank if you don't want it in plaintext and it'll pro
 base_url = ""
 
 
+username = "alexc" # Username/password to authenticate against the API
+password = "q%)P3hX>8JuyoRnjc" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
+
+# API URL
+base_url = "https://sales-demo.divvycloud.com"
 #  Param validation
 if not username:
     username = input("Username: ")
@@ -50,7 +55,7 @@ headers = {
 }
 
 def get_domain_admins():
-    data = {limit: 500, offset: 0, order_by: "name", filters: []}
+    data = {'limit': 500, 'offset': 0, 'order_by': "name", 'filters': []}
     response = requests.post(
         url=base_url + '/v2/prototype/domains/admins/list',
         verify=False,
@@ -61,7 +66,7 @@ def get_domain_admins():
 
 
 def get_users():
-    data = {limit: 500, offset: 0, order_by: "name", filters: []}
+    data = {'limit': 500, 'offset': 0, 'order_by': "name", 'filters': []}
     response = requests.post(
         url=base_url + '/v2/public/users/list',
         verify=False,

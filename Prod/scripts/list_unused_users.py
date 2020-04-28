@@ -13,12 +13,6 @@ password = "" # Leave this blank if you don't want it in plaintext and it'll pro
 # API URL
 base_url = ""
 
-
-username = "alexc" # Username/password to authenticate against the API
-password = "q%)P3hX>8JuyoRnjc" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
-
-# API URL
-base_url = "https://sales-demo.divvycloud.com"
 #  Param validation
 if not username:
     username = input("Username: ")
@@ -62,8 +56,10 @@ def get_domain_admins():
         data=json.dumps(data),
         headers=headers
     )
-    return response.json()
-
+    try:
+        return response.json()
+    except:
+        return response
 
 def get_users():
     data = {'limit': 500, 'offset': 0, 'order_by': "name", 'filters': []}
@@ -73,7 +69,10 @@ def get_users():
         data=json.dumps(data),
         headers=headers
     )
-    return response.json()
+    try:
+        return response.json()
+    except:
+        return response
 
 admin_list = get_domain_admins() ## Get list of admins and put them into an array
 normal_user_list = get_users() ## Same thing for normal users

@@ -13,13 +13,8 @@ password = "" # Leave this blank if you don't want it in plaintext and it'll pro
 # API URL
 base_url = ""
 
-username = "alexc" # Username/password to authenticate against the API
-password = "q%)P3hX>8JuyoRnjc" # Leave this blank if you don't want it in plaintext and it'll prompt you to input it when running the script. 
 
-# API URL
-base_url = "https://sales-demo.divvycloud.com"
-
-# Param validation
+#  Param validation
 if not username:
     username = input("Username: ")
 
@@ -54,7 +49,7 @@ headers = {
     'X-Auth-Token': auth_token
 }
 
-def get_users():
+def get_domain_admins():
     data = {}
     response = requests.post(
         url=base_url + '/v2/prototype/domains/admins/list',
@@ -64,12 +59,29 @@ def get_users():
     )
     return response.json()
 
-user_list = get_users() ## Same thing for normal users
+
+def get_users():
+    data = {}
+    response = requests.post(
+        url=base_url + '/v2/public/users/list',
+        verify=False,
+        data=json.dumps(data),
+        headers=headers
+    )
+    return response.json()
+
+admin_list = get_domain_admins() ## Get list of admins and put them into an array
+normal_user_list = get_users() ## Same thing for normal users
+
+# Both responses above are the same. Squish them into a master array
+all_user_list = []
+all_user_list.extend(admin_list['users'])
+all_user_list.extend(normal_user_list['users'])
 
 old_users = []
 today = date.today()  # get todays date
 
-for user in user_list['users']:
+for user in all_user_list:
     try:
         last_login_date = user['last_login_time'].split(" ")[0] # Just pull date and ignore the time ## "last_login_time": "2020-02-07 21:52:18",
         year, month, day = map(int, last_login_date.split("-"))

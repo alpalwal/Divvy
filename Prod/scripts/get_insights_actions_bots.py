@@ -8,7 +8,7 @@ from collections import defaultdict
 
 # Username/password to authenticate against the API
 username = 'alexc'
-password = 'q%)P3hX>8JuyoRnjc'
+password = '63JtLkVcap[SF>kT}T'
 
 version = '20.2'
 

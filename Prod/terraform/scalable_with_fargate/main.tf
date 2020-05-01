@@ -1309,4 +1309,3 @@ resource "aws_ecs_task_definition" "workerPersistent" {
     tags                     = {}
     task_role_arn            = local.ecs_task_role
 }
-
